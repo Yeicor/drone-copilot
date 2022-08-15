@@ -49,7 +49,7 @@ requirements = python3,kivy,numpy
 #icon.filename = %(source.dir)s/data/icon.png
 
 # (str) Supported orientation (one of landscape, sensorLandscape, portrait or all)
-orientation = portrait
+orientation = all
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
@@ -160,17 +160,17 @@ android.api = 30
 #android.add_aars =
 
 # (list) Gradle dependencies to add
-android.gradle_dependencies = "org.tensorflow:tensorflow-lite:2.9.0","org.tensorflow:tensorflow-lite-support:0.4.1"
+android.gradle_dependencies = org.tensorflow:tensorflow-lite:2.9.0,org.tensorflow:tensorflow-lite-support:0.4.1
 
 # (list) add java compile options
 # this can for example be necessary when importing certain java libraries using the 'android.gradle_dependencies' option
 # see https://developer.android.com/studio/write/java8-support for further information
-# android.add_compile_options = "sourceCompatibility = 1.8", "targetCompatibility = 1.8"
+android.add_compile_options = sourceCompatibility 1.8, targetCompatibility 1.8
 
 # (list) Gradle repositories to add {can be necessary for some android.gradle_dependencies}
 # please enclose in double quotes 
 # e.g. android.gradle_repositories = "maven { url 'https://kotlin.bintray.com/ktor' }"
-android.add_gradle_repositories = "mavenCentral()"
+android.add_gradle_repositories = mavenCentral()
 
 # (list) packaging options to add 
 # see https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.PackagingOptions.html
@@ -229,7 +229,7 @@ android.add_gradle_repositories = "mavenCentral()"
 #android.copy_libs = 1
 
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
-android.arch = x86
+android.arch = arm64-v8a
 
 # (int) overrides automatic versionCode computation (used in build.gradle)
 # this is not the same as app version and should only be edited if you know what you're doing
