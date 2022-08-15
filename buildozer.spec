@@ -36,7 +36,7 @@ version.filename = %(source.dir)s/main.py
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,numpy
+requirements = python3,kivy,numpy,opencv-python
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -88,7 +88,7 @@ fullscreen = 0
 #android.presplash_lottie = "path/to/lottie/file.json"
 
 # (list) Permissions
-#android.permissions = INTERNET
+#android.permissions = INTERNET,CAMERA
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host

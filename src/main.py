@@ -6,6 +6,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 
 from model import TensorFlowModel
+from video import Video
 
 __version__ = '0.0.1'
 
@@ -17,7 +18,7 @@ class MyApp(App):
 
         root = BoxLayout(orientation='vertical')
 
-        # TODO: Android fix for: root.add_widget(Camera(play=True, index=0))
+        root.add_widget(Video())
 
         # TensorsFlow demo
         model = TensorFlowModel()
