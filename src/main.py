@@ -1,42 +1,61 @@
-import os
-
-import numpy as np
-from kivy import Logger
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
+from kivy.core.window import Window
+from kivy.utils import platform
 
-from model import TensorFlowModel
-from video import Video
+from android_permissions import AndroidPermissions
+from applayout import AppLayout
 
 __version__ = '0.0.1'
+
+if platform == 'android':
+    from jnius import autoclass
+    from android.runnable import run_on_ui_thread
+    from android import mActivity
+
+    View = autoclass('android.view.View')
+
+
+    @run_on_ui_thread
+    def hide_landscape_status_bar(instance, width, height):
+        # width,height gives false layout events, on pinch/spread 
+        # so use Window.width and Window.height
+        if Window.width > Window.height:
+            # Hide status bar
+            option = View.SYSTEM_UI_FLAG_FULLSCREEN
+        else:
+            # Show status bar 
+            option = View.SYSTEM_UI_FLAG_VISIBLE
+        mActivity.getWindow().getDecorView().setSystemUiVisibility(option)
+elif platform != 'ios':
+    # Dispose of that nasty red dot, required for gestures4kivy.
+    from kivy.config import Config
+
+    Config.set('input', 'mouse', 'mouse, disable_multitouch')
 
 
 class MyApp(App):
 
     def build(self):
-        self.title = 'Tello Copilot'
+        self.started = False
+        if platform == 'android':
+            Window.bind(on_resize=hide_landscape_status_bar)
+        self.layout = AppLayout()
+        return self.layout
 
-        root = BoxLayout(orientation='vertical')
+    def on_start(self):
+        self.dont_gc = AndroidPermissions(self.start_app)
 
-        root.add_widget(Video())
+    def start_app(self):
+        self.dont_gc = None
+        # Can't connect camera till after on_start()
+        Clock.schedule_once(self.connect_camera)
 
-        # TensorsFlow demo
-        start_time = Clock.time()
-        model = TensorFlowModel()
-        model.load(os.path.join(os.getcwd(), 'model.tflite'))
-        Logger.info('TensorFlowModel load in ' + str(Clock.time() - start_time))
-        np.random.seed(42)
-        x = np.array(np.random.random_sample((1, 28, 28)), np.float32)
-        y = model.pred(x)
-        Logger.info('TensorFlowModel prediction in ' + str(Clock.time() - start_time))
-        # result should be
-        # 0.01647118,  1.0278152 , -0.7065112 , -1.0278157 ,  0.12216613,
-        # 0.37980393,  0.5839217 , -0.04283606, -0.04240461, -0.58534086
-        root.add_widget(Label(text=f'{y}', text_size=(None, 100)))
+    def connect_camera(self, dt):
+        self.layout.detect.connect_camera(enable_analyze_pixels=True)
 
-        return root
+    def on_stop(self):
+        self.layout.detect.disconnect_camera()
 
 
 if __name__ == '__main__':

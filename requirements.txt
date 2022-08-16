@@ -1,36 +1,24 @@
 # These are the required packages for the desktop applications (and build dependencies for other targets).
 # For android see the `requirements` section of the `buildozer.spec` file.
-# For iOS see the `Podfile` file.
-
 absl-py==1.2.0
-appdirs==1.4.4
-arrow==1.2.2
 astunparse==1.6.3
-binaryornot==0.4.4
-buildozer @ git+https://github.com/kivy/buildozer.git@654448b1596b31e37fd3f31d330b506142754588
+buildozer==1.4.0
 cachetools==5.2.0
+camera4kivy==0.0.7
 certifi==2022.6.15
-chardet==5.0.0
 charset-normalizer==2.1.0
-click==8.1.3
-colorama==0.4.5
-cookiecutter==2.1.1
-Cython==0.29.32
 distlib==0.3.5
-docopt==0.6.2
 docutils==0.19
 filelock==3.8.0
 flatbuffers==1.12
 gast==0.4.0
+gestures4kivy==0.0.7
 google-auth==2.10.0
 google-auth-oauthlib==0.4.6
 google-pasta==0.2.0
 grpcio==1.47.0
 h5py==3.7.0
 idna==3.3
-importlib-metadata==4.12.0
-Jinja2==3.1.2
-jinja2-time==0.2.0
 keras==2.9.0
 Keras-Preprocessing==1.1.2
 Kivy==2.1.0
@@ -41,11 +29,8 @@ MarkupSafe==2.1.1
 numpy==1.23.2
 oauthlib==3.2.0
 opencv-python==4.6.0.66
-openstep-parser==1.5.3
 opt-einsum==3.3.0
 packaging==21.3
-pbxproj==3.4.0
-pep517==0.6.0
 pexpect==4.8.0
 platformdirs==2.5.2
 protobuf==3.19.4
@@ -54,10 +39,6 @@ pyasn1==0.4.8
 pyasn1-modules==0.2.8
 Pygments==2.13.0
 pyparsing==3.0.9
-python-dateutil==2.8.2
-python-slugify==6.1.2
-pytoml==0.1.21
-PyYAML==6.0
 requests==2.28.1
 requests-oauthlib==1.3.1
 rsa==4.9
@@ -66,15 +47,12 @@ six==1.16.0
 tensorboard==2.9.1
 tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.1
-tensorflow==2.9.1
 tensorflow-estimator==2.9.0
+tensorflow-gpu==2.9.1
 tensorflow-io-gcs-filesystem==0.26.0
 termcolor==1.1.0
-text-unidecode==1.3
-toml==0.10.2
 typing_extensions==4.3.0
 urllib3==1.26.11
 virtualenv==20.16.3
 Werkzeug==2.2.2
 wrapt==1.14.1
-zipp==3.8.1
