@@ -13,7 +13,7 @@ Currently you can only build for Android using buildozer on Linux.
 You need to install buildozer and other build dependencies first:
 
 ```
-pip install git+https://github.com/kivy/buildozer.git@master cython pbxproj cookiecutter
+pip install buildozer cython
 ```
 
 Then you can build (and optionally run) the APK:

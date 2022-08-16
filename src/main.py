@@ -1,12 +1,13 @@
 from kivy.app import App
-from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.utils import platform
 
-from android_permissions import AndroidPermissions
-from applayout import AppLayout
+# from android_permissions import AndroidPermissions
+# from applayout import AppLayout
 
 __version__ = '0.0.1'
+
+from videoopencv import VideoOpenCV
 
 if platform == 'android':
     from jnius import autoclass
@@ -28,34 +29,19 @@ if platform == 'android':
             option = View.SYSTEM_UI_FLAG_VISIBLE
         mActivity.getWindow().getDecorView().setSystemUiVisibility(option)
 elif platform != 'ios':
-    # Dispose of that nasty red dot, required for gestures4kivy.
     from kivy.config import Config
 
+    # Dispose of that nasty red dot, required for gestures4kivy.
     Config.set('input', 'mouse', 'mouse, disable_multitouch')
 
 
 class MyApp(App):
 
     def build(self):
-        self.started = False
+        self.title = 'Tello Copilot'
         if platform == 'android':
             Window.bind(on_resize=hide_landscape_status_bar)
-        self.layout = AppLayout()
-        return self.layout
-
-    def on_start(self):
-        self.dont_gc = AndroidPermissions(self.start_app)
-
-    def start_app(self):
-        self.dont_gc = None
-        # Can't connect camera till after on_start()
-        Clock.schedule_once(self.connect_camera)
-
-    def connect_camera(self, dt):
-        self.layout.detect.connect_camera(enable_analyze_pixels=True)
-
-    def on_stop(self):
-        self.layout.detect.disconnect_camera()
+        return VideoOpenCV()
 
 
 if __name__ == '__main__':

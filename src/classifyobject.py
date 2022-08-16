@@ -84,7 +84,7 @@ class ClassifyObject(Preview):
             category = detection.categories[0]
             class_name = category.label
             probability = round(category.score, 2)
-            result_text = class_name + ' (Probability: {:.2f} FPS: {:.1f} )'.format(probability, fps)
+            result_text = class_name + ' (Prob: {:.2f})'.format(probability)
             label = CoreLabel(font_size=sp(20))
             label.text = result_text
             label.refresh()
