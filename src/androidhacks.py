@@ -2,12 +2,33 @@ from kivy.clock import mainthread
 from kivy.utils import platform
 
 if platform == 'android':
-    from kivy.uix.button import Button
-    from kivy.uix.modalview import ModalView
-    from kivy.clock import Clock
+    from jnius import autoclass
     from android import mActivity
     from android.permissions import request_permissions, check_permission, \
         Permission
+    from android.runnable import run_on_ui_thread
+    from kivy.uix.button import Button
+    from kivy.uix.modalview import ModalView
+    from kivy.clock import Clock
+    from kivy.core.window import Window
+
+
+def setup():
+    View = autoclass('android.view.View')
+
+    @run_on_ui_thread
+    def hide_landscape_status_bar(instance, width, height):
+        # width,height gives false layout events, on pinch/spread
+        # so use Window.width and Window.height
+        if Window.width > Window.height:
+            # Hide status bar
+            option = View.SYSTEM_UI_FLAG_FULLSCREEN
+        else:
+            # Show status bar
+            option = View.SYSTEM_UI_FLAG_VISIBLE
+        mActivity.getWindow().getDecorView().setSystemUiVisibility(option)
+
+    Window.bind(on_resize=hide_landscape_status_bar)
 
 
 #########################################################################
@@ -44,7 +65,6 @@ class AndroidPermissions:
             # Customize run time permissions for the app here
             #################################################
             self.permissions = [Permission.CAMERA]
-            #################################################            
             self.permission_status([], [])
         elif self.start_app:
             self.start_app()
