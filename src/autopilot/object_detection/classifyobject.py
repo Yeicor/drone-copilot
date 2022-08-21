@@ -2,7 +2,7 @@
 # It is based on:
 # https://github.com/tensorflow/examples/tree/master/lite/examples/object_detection
 #
-# cv2 references this file and object_detection/object_detector.py from
+# cv2 references this file and autopilot.object_detection/object_detector.py from
 # example above replaced with 'self.auto_analyze_resolution'
 
 import time
@@ -15,8 +15,8 @@ from kivy.graphics import Color, Line, Rectangle
 from kivy.metrics import dp, sp
 from kivy.utils import platform
 
-from object_detection.object_detector import ObjectDetector
-from object_detection.object_detector import ObjectDetectorOptions
+from .object_detector import ObjectDetector
+from .object_detector import ObjectDetectorOptions
 
 
 class ClassifyObject(Preview):
@@ -27,11 +27,11 @@ class ClassifyObject(Preview):
         num_threads = 4
         enable_edgetpu = False  ## Change this for Coral Accererator
         if platform == 'android':
-            model = 'object_detection/model.tflite'
+            model = 'autopilot.object_detection/model.tflite'
         elif enable_edgetpu:
-            model = 'object_detection/efficientdet_lite0_edgetpu.tflite'
+            model = 'autopilot.object_detection/efficientdet_lite0_edgetpu.tflite'
         else:
-            model = 'object_detection/efficientdet_lite0.tflite'
+            model = 'autopilot.object_detection/efficientdet_lite0.tflite'
         options = ObjectDetectorOptions(
             num_threads=4,
             score_threshold=0.5,
@@ -50,8 +50,7 @@ class ClassifyObject(Preview):
     def analyze_pixels_callback(self, pixels, image_size, image_pos,
                                 image_scale, mirror):
         # Convert pixels to numpy rgb
-        rgba = np.fromstring(pixels, np.uint8).reshape(image_size[1],
-                                                       image_size[0], 4)
+        rgba = np.fromstring(pixels, np.uint8).reshape((image_size[1], image_size[0], 4))
         rgb = rgba[:, :, :3]
         # detect
         detections = self.detector.detect(rgb)

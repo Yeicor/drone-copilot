@@ -1,9 +1,10 @@
 from kivy.app import App
 from kivy.utils import platform
 
-import androidhacks
-from video.proxy import VideoProxy
-from video.video import Video
+from ui.video.video import Video
+from util import androidhacks
+from util.video.proxy import VideoProxy
+from util.video.videosource import VideoSource
 
 __version__ = '0.0.2'
 
@@ -23,7 +24,11 @@ class MyApp(App):
 
         proxy = VideoProxy()
         proxy.start()  # Start the default video proxy (UDP -> TCP)
-        return Video('tcp://{}:{}'.format(proxy.dst_addr[0], proxy.dst_addr[1]))
+        video_widget = Video()
+        video_source = VideoSource('tcp://{}:{}'.format(proxy.dst_addr[0], proxy.dst_addr[1]))
+        video_source.bind(on_video_frame=lambda _, frame: video_widget.update_texture(frame))
+        video_source.start()
+        return video_widget
 
 
 if __name__ == '__main__':

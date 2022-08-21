@@ -26,7 +26,7 @@ source.include_exts = py,png,jpg,kv,atlas,tflite
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
-source.exclude_patterns = object_detection/efficient*.tflite
+source.exclude_patterns = autopilot.object_detection/efficient*.tflite
 
 # (str) Application versioning (method 1)
 #version = 0.1
@@ -303,7 +303,7 @@ android.allow_backup = True
 #p4a.source_dir =
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
-#p4a.local_recipes =
+p4a.local_recipes = recipes/
 
 # (str) Filename to the hook for p4a
 #p4a.hook = camerax_provider/gradle_options.py
