@@ -9,7 +9,7 @@ python3 main.py
 
 ## Android
 
-Currently you can only build for Android using buildozer on Linux.
+Currently, you can only build for Android using buildozer on Linux.
 You need to install buildozer and other build dependencies first:
 
 ```
@@ -22,19 +22,17 @@ Then you can build (and optionally run) the APK:
 buildozer android debug [deploy run]
 ```
 
-The build is available at `bin/tellocopilot-...-debug.apk`
-
 ## iOS (not tested)
 
 Remember that you will need an Apple developer account to be able to install your app on a real iPhone.
 
-Install Cocoapods if you haven't already
+Install Cocoapods if you haven't already:
 
 ```
 brew install cocoapods
 ```
 
-Build your app and install the Tensorflow Lite pod
+Build your app and install the Tensorflow Lite pod:
 
 ```
 buildozer ios debug
