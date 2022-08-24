@@ -1,10 +1,10 @@
 [app]
 
 # (str) Title of your application
-title = Tello Copilot
+title = Drone Copilot
 
 # (str) Package name
-package.name = tellocopilot
+package.name = dronecopilot
 
 # (str) Package domain (needed for android/ios packaging)
 package.domain = org.yeicor.duckdns

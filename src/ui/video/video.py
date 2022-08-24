@@ -4,10 +4,10 @@ from kivy.graphics.texture import Texture
 from kivy.uix.image import Image
 
 
-class Video(Image):
+class MyVideo(Image):
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs, nocache=True)
+        super().__init__(**kwargs, nocache=True, allow_stretch=True)
 
     @mainthread
     def update_texture(self, frame: np.ndarray):

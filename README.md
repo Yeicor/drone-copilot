@@ -1,6 +1,6 @@
-# WIP: Tello Copilot
+# WIP: Drone Copilot
 
-An application to control a [DJI Tello](https://www.ryzerobotics.com/tello) drone.
+An application to control a [DJI Tello](https://www.ryzerobotics.com/tello) drone (and others in the future).
 
 ## Features
 
