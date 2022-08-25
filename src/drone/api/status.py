@@ -14,7 +14,15 @@ class Status(ABC):
     @abstractmethod
     def battery(self) -> float:
         """The battery level of the drone as a float between 0 and 1.
-        This should be regularly checked and a safety protocol implemented if the battery level is low.
+        This should be regularly checked and a safety protocol implemented if it is low.
+        """
+        return 1.0
+
+    @property
+    @abstractmethod
+    def signal_strength(self) -> float:
+        """The signal strength of the connection to the drone as a float between 0 and 1.
+        This should be regularly checked and a safety protocol implemented if it is low.
         """
         return 1.0
 
@@ -25,6 +33,22 @@ class Status(ABC):
         This should be regularly checked and a safety protocol implemented if any value is too high.
         """
         return {}
+
+    @property
+    @abstractmethod
+    def flying(self) -> bool:
+        """Whether the drone is currently flying.
+        """
+        return False
+
+    @property
+    @abstractmethod
+    def height(self) -> float:
+        """The height of the drone above the ground.
+        This may be different from the -position.z value as the ground level may change, unlike the takeoff position.
+        This is only available if a Time-Of-Flight sensor is present. Otherwise, it will be set to a negative number.
+        """
+        return -1.0
 
     @property
     @abstractmethod
