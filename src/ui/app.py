@@ -1,11 +1,9 @@
-import json
-
 from kivy import platform, Logger
 from kivy.app import App
 from kivy.config import ConfigParser
 from kivy.uix.settings import SettingsWithSpinner
 
-from ui.settings import settings_metadata
+from ui.settings.registry import get_settings_meta, get_settings_defaults
 from util import androidhacks
 from util.video.proxy import VideoProxy
 from util.video.videosource import VideoSource
@@ -37,11 +35,8 @@ class DroneCopilotApp(App):
         del self.proxy
 
     def build_settings(self, settings):
-        settings.add_json_panel(self.title, self.config, data=json.dumps(settings_metadata))
+        settings.add_json_panel(self.title, self.config, data=get_settings_meta())
 
     def build_config(self, config: ConfigParser):
-        config.setdefaults('connection', {
-            'drone': 'tello',
-            'url': 'tcp://192.168.1.1:8889',
-            'extra': '{\"video_url\": \"udp://0.0.0.0:11111\"}',
-        })
+        for k, v in get_settings_defaults().items():
+            config.setdefaults(k, v)

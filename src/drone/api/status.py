@@ -30,7 +30,7 @@ class Status(ABC):
     @abstractmethod
     def temperatures(self) -> Dict[str, float]:
         """The temperatures of the different components of the drone, as key-values indexed by name.
-        This should be regularly checked and a safety protocol implemented if any value is too high.
+        This should be regularly checked and a safety protocol implemented if any value is high.
         """
         return {}
 
@@ -45,7 +45,7 @@ class Status(ABC):
     @abstractmethod
     def height(self) -> float:
         """The height of the drone above the ground.
-        This may be different from the -position.z value as the ground level may change, unlike the takeoff position.
+        This may be different from the -position.z value as the ground level may change, unlike the takeoff z value.
         This is only available if a Time-Of-Flight sensor is present. Otherwise, it will be set to a negative number.
         """
         return -1.0

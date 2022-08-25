@@ -4,7 +4,8 @@ An application to control a [DJI Tello](https://www.ryzerobotics.com/tello) dron
 
 ## Features
 
-- [ ] Cross-platform: mobile for accessibility (Android, iOS) and desktop for performance (Windows, MacOS, Linux).
+- [x] Cross-platform: mobile for accessibility (Android, iOS) and desktop for performance (Windows, MacOS, Linux).
+- [x] Live video and status of the drone.
 - [ ] Manual control of the drone (UI joysticks).
 - [ ] Gamepad support (on all platforms).
 - [ ] Autopilot [...].

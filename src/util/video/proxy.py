@@ -43,7 +43,7 @@ class VideoProxy(threading.Thread):
             buf_size = 4096
             buffer = bytearray(buf_size)
             try:
-                self.socket_in.settimeout(5.0)  # Make sure that we check the exit flag once in a while
+                self.socket_in.settimeout(1.0)  # Make sure that we check the exit flag once in a while
                 while not self.closing:
                     try:
                         read = self.socket_in.recv_into(buffer, buf_size)

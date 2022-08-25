@@ -19,8 +19,16 @@ class Drone(ABC):
     roll is the rotation around the X axis (positive is moving the right-side up).
     """
 
-    @abstractmethod
-    def get_name(self) -> str:
+    def __init__(self, url: str, extras: any):
+        """Connects to the drone
+        :param url: the URL of the drone (if applicable).
+        :param extras: any drone-specific data required for setup (check docs).
+        """
+        super(Drone, self).__init__()
+        pass
+
+    @staticmethod
+    def get_name() -> str:
         """Returns the display name of the drone.
         It may be just the model name, or something else.
         """

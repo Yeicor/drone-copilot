@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
-from typing import Callable, List
+from typing import Callable, List, Tuple
 
 import numpy as np
 
@@ -13,10 +13,10 @@ class Camera(ABC):
     direction: np.ndarray = np.array([1, 0, 0])  # <- Forward
     """The (approximate) direction of the camera in 3D space (unit vector).
     """
-    resolutions_video: List[(int, int)] = field(default_factory=list)
+    resolutions_video: List[Tuple[int, int]] = field(default_factory=list)
     """The available video resolutions of the camera. [] if unknown.
     """
-    resolutions_photo: List[(int, int)] = field(default_factory=list)
+    resolutions_photo: List[Tuple[int, int]] = field(default_factory=list)
     """The available photo resolutions of the camera. [] if unknown.
     """
 
