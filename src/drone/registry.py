@@ -1,6 +1,7 @@
 import json
 from typing import List, Type, Optional, Callable
 
+from kivy import Logger
 from kivy.config import ConfigParser
 
 from drone.api.drone import Drone
@@ -36,7 +37,8 @@ def drone_connect_auto(config: ConfigParser, callback: Callable[[Optional[Type[D
             drone_class = c
             break
     if drone_class is None:
-        raise ValueError(f'No drone class found for name {drone_class_name}')
+        Logger.error(f'No drone class found for name {drone_class_name}')
+        return  # Disconnect callback chain on error
 
     # Perform the connection and register the callback
     drone_class.connect(config.get("connection", "url"), float(config.get("connection", "timeout")),
