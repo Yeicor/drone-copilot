@@ -52,6 +52,7 @@ requests-oauthlib==1.3.1
 rsa==4.9
 sh==1.14.3
 six==1.16.0
+tellopy @ git+https://github.com/hanyazou/TelloPy@2e3ff77f87448307d6d2656c91ac80e2fb352193
 tensorboard==2.9.1
 tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.1

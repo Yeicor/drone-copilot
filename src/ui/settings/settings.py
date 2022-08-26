@@ -39,9 +39,6 @@ class SettingMetaString(SettingMeta):
 @dataclass
 class SettingMetaNumeric(SettingMeta):
     default: float
-    min: float
-    max: float
-    step: float
     type: str = "numeric"
 
 

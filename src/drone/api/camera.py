@@ -14,13 +14,23 @@ class Camera(ABC):
     """The (approximate) direction of the camera in 3D space (unit vector).
     """
     resolutions_video: List[Tuple[int, int]] = field(default_factory=list)
-    """The available video resolutions of the camera. [] if unknown.
+    """The available video resolutions of the camera. [] if unknown. The first one may be considered the default.
     """
     resolutions_photo: List[Tuple[int, int]] = field(default_factory=list)
-    """The available photo resolutions of the camera. [] if unknown.
+    """The available photo resolutions of the camera. [] if unknown. The first one may be considered the default.
     """
 
     # TODO: possibility to move the camera
+
+    @abstractmethod
+    def take_photo(self, resolution: (int, int), callback: Callable[[np.ndarray], None]):
+        """Takes a photo with the camera and returns it on callback. It returns "immediately".
+        It may freeze the video or not work if already listening for video
+
+        :param resolution: the requested resolution to use for the photo (only a hint).
+        :param callback: the function to call with the photo.
+        """
+        return lambda: None
 
     @abstractmethod
     def listen_video(self, resolution: (int, int), callback: Callable[[np.ndarray], None]) -> Callable[[], None]:
@@ -33,15 +43,5 @@ class Camera(ABC):
         :param resolution: the requested resolution to use for the video stream (only a hint).
         :param callback: the function to call with each video frame.
         :return: a function to stop listening.
-        """
-        return lambda: None
-
-    @abstractmethod
-    def take_photo(self, resolution: (int, int), callback: Callable[[np.ndarray], None]):
-        """Takes a photo with the camera and returns it on callback. It returns "immediately".
-        It may freeze the video or not work if already listening for video
-
-        :param resolution: the requested resolution to use for the photo (only a hint).
-        :param callback: the function to call with the photo.
         """
         return lambda: None

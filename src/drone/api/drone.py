@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Callable, List
+from typing import Callable, List, Optional, Type
 
 from drone.api.camera import Camera
 from drone.api.linearangular import LinearAngular
@@ -19,12 +21,15 @@ class Drone(ABC):
     roll is the rotation around the X axis (positive is moving the right-side up).
     """
 
-    def __init__(self, url: str, extras: any):
-        """Connects to the drone
+    @staticmethod
+    def connect(url: str, timeout_secs: float, extra: any, callback: Callable[[Optional[Type[Drone]]], None]):
+        """Connects to the drone, returning "immediately". Remember to delete this object for disconnection!
+
         :param url: the URL of the drone (if applicable).
-        :param extras: any drone-specific data required for setup (check docs).
+        :param timeout_secs: the maximum amount of time to wait for the drone to connect.
+        :param extra: any drone-specific data required for setup (check docs).
+        :param callback: a callback function that is called when the drone is connected (or the connection fails).
         """
-        super(Drone, self).__init__()
         pass
 
     @staticmethod
@@ -64,7 +69,7 @@ class Drone(ABC):
         pass
 
     @abstractmethod
-    def set_velocity(self, velocity: LinearAngular):
+    def set_speed(self, speed: LinearAngular):
         """Sets the speed of the drone in 3D space and returns "immediately".
         The drone must be flying for this to have any effect.
         The drone may take some time to reach the new speed, but will accept more speed commands meanwhile.

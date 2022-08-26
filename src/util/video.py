@@ -1,3 +1,4 @@
+import socket
 import threading
 import time
 import weakref
@@ -10,35 +11,45 @@ from kivy.clock import Clock
 from kivy.event import EventDispatcher
 
 
-class VideoSource(threading.Thread,
-                  EventDispatcher):  # TODO: Take ideas from VideoFFPy (e.g. yuv420p rendering through shader!)
-    """
-    This class provides a simple way to decode any video source into numpy arrays representing each (video) frame.
+class StreamingVideoSource(threading.Thread, EventDispatcher):
+    """This class provides a simple way to decode any streaming video source into python arrays for each (video) frame.
 
-    Call start() to start the video thread and produce on_video_frame events.
-    See :func:`util.video.video.Video.on_video_frame` for more details.
-
-    .. warning::
-        UDP sources are not supported on Android (why?) use a UDP to TCP proxy instead
-        (:class:`util.video.proxy.VideoProxy`).
+    Call `start()` to start the video thread and produce on_video_frame events after `feed()` ing data.
+    See :func:`util.video.StreamingVideoSource.on_video_frame` for more details.
     """
 
-    def __init__(self, src="udp://0.0.0.0:2000", playback_speed=1.0, *args, **kwargs):
+    # TODO: Take ideas from VideoFFPy (e.g. yuv420p rendering through shader!)
+
+    def __init__(self, playback_speed=1.0):
         """
         Set up the :class:`Video` player.
 
-        :param src: The source of the video stream.
         :param playback_speed: The speed to play the video at. Useful to catch up to livestreams.
         """
-        super(VideoSource, self).__init__(*args, **kwargs, daemon=True)
+        super(StreamingVideoSource, self).__init__(daemon=False)
         # Parameters
-        self.src = src
         self.playback_speed = playback_speed
         # Events
         self.register_event_type('on_video_frame')
-        # Threading
-        self.player = None
+
+        # Register a socket to feed data to the video decoder
+        self.socket_out = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket_out.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)  # Don't wait before sending data
+        self.socket_out.bind(('127.0.0.1', 0))  # Any local port
+        sockname = self.socket_out.getsockname()
+        self.socket_address = 'tcp://' + str(sockname[0]) + ":" + str(sockname[1])
+        self.socket_out.listen(1)
+        # Start the video decoder and connect it to the socket
+        # noinspection PyUnresolvedReferences,PyArgumentList
+        self.player = MediaPlayer(self.socket_address, ff_opts={  # TODO: configure more ffmpeg options
+            'framedrop': True, 'stats': True, 'fast': True, 'an': True,
+            # Apply a video filter to catch up to live source as long as more frames are available.
+            'vf': ['setpts=' + str(1 / self.playback_speed) + '*PTS'],
+        })
+        self.player.set_output_pix_fmt('rgb24')  # Should be the default, but just in case
         self.closing = False
+        # Accept the connection (should be queued) from the video decoder to be able to feed data
+        self.out, client_address = self.socket_out.accept()
         # Stats & debug
         self.stats_frame_time = 0
         self.stats_frame_time_counter = 0
@@ -46,20 +57,16 @@ class VideoSource(threading.Thread,
         # Finalizer (in case the user forgets to call del)
         weakref.finalize(self, self.__del__)
 
+    def feed(self, bs: bytes):
+        """Provides the given video source bytes to the decoder, that will produce events when each frame is available.
+
+        :param bs: the next block of data to decode
+        """
+        self.out.sendall(bs)
+
     def run(self):
         """The video thread that produces frame events. Call start() to start this thread.
         """
-
-        start_time = Clock.time()
-
-        # noinspection PyUnresolvedReferences,PyArgumentList
-        self.player = MediaPlayer(self.src, ff_opts={  # TODO: configure more ffmpeg options
-            'framedrop': True, 'stats': True, 'fast': True, 'an': True,
-            # Apply a video filter to catch up to live source as long as more frames are available.
-            'vf': ['setpts=' + str(1 / self.playback_speed) + '*PTS'],
-        })
-        self.player.set_output_pix_fmt('rgb24')  # Should be the default, but just in case
-        Logger.info('Video: initialization (network + codec probing) took ' + str(Clock.time() - start_time))
 
         # Start reading video frames and sending them to the main thread
         while not self.closing:
