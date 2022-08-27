@@ -1,4 +1,4 @@
-from typing import Type, Optional
+from typing import Optional
 
 from kivy import platform, Logger
 from kivy.app import App

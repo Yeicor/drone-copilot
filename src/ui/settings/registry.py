@@ -6,9 +6,11 @@ from .register import _settings_metadata
 
 if True:
     # List of imports that automatically register settings:
-    from drone.registry import _drone_classes
+    from drone.registry import Drone
+    from .ui import SettingMetaNumeric
 
-    _ = _drone_classes
+    _ = Drone
+    _ = SettingMetaNumeric
 
 
 # noinspection PyTypeChecker
