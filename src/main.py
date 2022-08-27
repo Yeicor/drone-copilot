@@ -2,7 +2,7 @@ from kivy.utils import platform
 
 from ui.app import DroneCopilotApp
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 if __name__ == '__main__':
     if platform != 'android' and platform != 'ios':
         from kivy.config import Config
