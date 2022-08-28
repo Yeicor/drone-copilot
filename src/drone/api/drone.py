@@ -42,12 +42,12 @@ class Drone(ABC):
     @property
     @abstractmethod
     def status(self) -> Status:
-        """Accesses the last status report of the drone.
+        """Accesses the last status report of the drone. `listen_status` is recommended instead.
         """
         return Status()
 
     @abstractmethod
-    def status_listen(self, callback: Callable[[Status], None]) -> Callable[[], None]:
+    def listen_status(self, callback: Callable[[Status], None]) -> Callable[[], None]:
         """Receives status updates executing callback as soon as they are provided by the drone.
         Multiple calls to status_listen should share the data, reducing the load of the drone manager.
         The callback may be run on the status thread, so long-running operations should be moved to another thread.

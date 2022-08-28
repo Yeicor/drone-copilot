@@ -1,3 +1,5 @@
+import time
+from threading import Thread
 from typing import Callable, Optional
 
 import cv2
@@ -24,10 +26,11 @@ class TelloCamera(Camera):  # TODO: Threadsafe implementation
         self.listeners_photo: [Callable[[np.ndarray], None]] = []
         # Video
         self.listeners_video: [Callable[[np.ndarray], None]] = []
+        self.last_video_sync_point: float = time.time()
         self.decoder: Optional[StreamingVideoSource] = None
         # Configure tello listeners
+        # self.tello.subscribe(Tello.EVENT_VIDEO_FRAME, lambda **kwargs: self._on_video_data_h264_bytes(kwargs['data']))
         self.tello.subscribe(Tello.EVENT_FILE_RECEIVED, lambda **kwargs: self._on_photo_jpeg_bytes(kwargs['data']))
-        self.tello.subscribe(Tello.EVENT_VIDEO_FRAME, lambda **kwargs: self._on_video_data_h264_bytes(kwargs['data']))
         self.tello.video_enabled = False
 
     def take_photo(self, resolution: (int, int), callback: Callable[[np.ndarray], None]):
@@ -51,8 +54,12 @@ class TelloCamera(Camera):  # TODO: Threadsafe implementation
     def listen_video(self, resolution: (int, int), callback: Callable[[np.ndarray], None]) -> Callable[[], None]:
         # First listener sets up the shared video decoder
         if len(self.listeners_video) == 0:
+            # Start the shared decoder
             self.decoder = StreamingVideoSource()
             self.decoder.start()
+
+            # Start the shared raw frame listener that filters and sends the frames to the decoder
+            Thread(target=TelloCamera._on_video_data_h264_bytes_thread, args=(self,), daemon=True).start()
 
             # Connect each frame decoded to notifying all listeners
             def on_video_frame(_ignore, frame: np.ndarray):
@@ -75,11 +82,25 @@ class TelloCamera(Camera):  # TODO: Threadsafe implementation
             del self.decoder
             self.tello.video_enabled = False
 
-    def _on_video_data_h264_bytes(self, data: bytes):
-        if len(self.listeners_video) == 0:
-            Logger.warn('Unexpected frame data received with no listeners')
-            return
-        self.decoder.feed(data)
+    @staticmethod
+    def _on_video_data_h264_bytes_thread(self):
+        """Alternative to subscribe() + _on_video_data_h264_bytes that uses a thread to decode the video.
+        The benefit is that it filters packets in the way that the TelloPy library recommends
+        """
+        video_stream = self.tello.get_video_stream()
+        while self.tello.video_enabled:
+            self.decoder.feed(video_stream.read(2048))
+            # Help the decoder start & recover from artifacts by requesting a sync point continuously
+            if time.time() - self.last_video_sync_point > 0.1:  # FIXME
+                self.tello.start_video()
+                self.last_video_sync_point = time.time()
+        self.tello.video_stream = None
+
+    # def _on_video_data_h264_bytes(self, data: bytes):
+    #     if len(self.listeners_video) == 0:
+    #         Logger.warn('Unexpected frame data received with no listeners')
+    #         return
+    #     self.decoder.feed(data)
 
     def __del__(self):  # Clean up resources
         for listener in self.listeners_photo:

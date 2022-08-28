@@ -6,7 +6,6 @@ import weakref
 from time import sleep
 from typing import Callable, Optional, List
 
-from kivy import Logger
 from tellopy import Tello
 from tellopy._internal.logger import LOG_INFO
 from tellopy._internal.protocol import FlightData, LogData
@@ -51,8 +50,8 @@ class TelloDrone(Drone):
         # Set some default configuration for the drone
         # NOTE that any packet may get lost due to using UDP
         self._tello.set_loglevel(LOG_INFO)
-        self._tello.set_exposure(0)
-        self._tello.set_video_encoder_rate(4)  # This forces the maximum quality (set to 0 for automatic)
+        self._tello.set_exposure(0)  # Automatic
+        self._tello.set_video_encoder_rate(0)  # Automatic
         self._tello.set_alt_limit(30)  # 30m
         self._tello.set_att_limit(15)  # 15deg
         # Listen for status updates and other events
@@ -68,6 +67,7 @@ class TelloDrone(Drone):
         weakref.finalize(self, self.__del__)
 
     def __del__(self):
+        del self.cameras
         self._tello.quit()
 
     def takeoff(self, callback: Callable[[bool], None]):
@@ -130,22 +130,9 @@ class TelloDrone(Drone):
 
     @property
     def status(self) -> Status:
-        def data_ready() -> bool:
-            return self.last_flight_data is not None and self.last_log_data is not None
+        return TelloStatus(self.last_flight_data, self.last_log_data)  # TODO: deep copy as this is internally aliased?
 
-        if data_ready():  # Fast path
-            return TelloStatus(self.last_flight_data, self.last_log_data)
-
-        # Slow path: wait for data to arrive (in another thread, connection confirmed),
-        # with a timeout (if the connection was lost just after connecting)
-        for i in range(10):
-            sleep(0.1)
-            if data_ready():
-                return TelloStatus(self.last_flight_data, self.last_log_data)
-
-        raise RuntimeError("Timeout waiting for status from the drone")
-
-    def status_listen(self, callback: Callable[[Status], None]) -> Callable[[], None]:
+    def listen_status(self, callback: Callable[[Status], None]) -> Callable[[], None]:
         self.status_listeners.append(callback)
         return lambda: self.status_listeners.remove(callback)
 

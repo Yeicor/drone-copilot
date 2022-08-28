@@ -97,6 +97,25 @@ class StreamingVideoSource(threading.Thread, EventDispatcher):
         # Inform that the thread finished
         self.closing = None
 
+    def run_av(self):
+        """Version using PyAV instead of ffpyplayer. It can be installed on all platforms (after some hacks), but cannot
+        run in any platform (AFAIK).
+        """
+        import av
+        Logger.info('Video: starting container')
+        container = av.open(self.socket_address, mode='r', format='h264', options={'framedrop': '1'})
+        Logger.info('Video: container ready')
+        for frame in container.decode(video=0):
+            Logger.info('Video: container gave frame')
+            if self.closing:
+                break  # No more listeners!
+            frame_ndarray = frame.to_ndarray()
+            self.dispatch('on_video_frame', frame_ndarray)
+        Logger.info('Video: container closing')
+        container.close()
+        # Inform that the thread finished
+        self.closing = None
+
     def on_video_frame(self, frame: np.ndarray):
         """
         This is the event that is dispatched when a new frame should be displayed. You can override this method to

@@ -11,30 +11,44 @@ from drone.api.status import Status
 @dataclass
 class TelloStatus(Status):
     flight_data: FlightData
+    """The last decoded flight data packet received from the drone."""
     log_data: LogData
+    """The last decoded log data packet received from the drone."""
 
     @property
     def battery(self) -> float:
+        if self.flight_data is None:
+            return super().battery
         return self.flight_data.battery_percentage / 100  # % -> [0, 1]
 
     @property
     def signal_strength(self) -> float:
+        if self.flight_data is None:
+            return super().signal_strength
         return self.flight_data.wifi_strength / 100  # % -> [0, 1]
 
     @property
     def temperatures(self) -> Dict[str, float]:
+        if self.flight_data is None:
+            return super().temperatures
         return {'temp': self.flight_data.temperature_height}  # TODO: Check values!
 
     @property
     def flying(self) -> bool:
+        if self.flight_data is None:
+            return super().flying
         return self.flight_data.fly_time > 0
 
     @property
     def height(self) -> float:
+        if self.flight_data is None:
+            return super().height
         return self.flight_data.height * .1  # dm -> m
 
     @property
     def position_attitude(self) -> LinearAngular:
+        if self.log_data is None:
+            return super().position_attitude
         res = LinearAngular()
         res.linear_x = self.log_data.mvo.pos_x  # TODO: Check axes!
         res.linear_y = self.log_data.mvo.pos_y  # TODO: Check axes!
@@ -45,6 +59,8 @@ class TelloStatus(Status):
 
     @property
     def velocity(self) -> LinearAngular:
+        if self.log_data is None:
+            return super().velocity
         res = LinearAngular()
         res.linear_x = self.log_data.mvo.vel_x  # TODO: Check axes!
         res.linear_y = self.log_data.mvo.vel_y  # TODO: Check axes!
@@ -56,6 +72,8 @@ class TelloStatus(Status):
 
     @property
     def acceleration(self) -> LinearAngular:
+        if self.log_data is None:
+            return super().acceleration
         res = LinearAngular()
         res.linear_x = self.log_data.imu.acc_x  # TODO: Check axes!
         res.linear_y = self.log_data.imu.acc_y  # TODO: Check axes!
