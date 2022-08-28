@@ -3,6 +3,7 @@ from typing import Optional
 from kivy import platform, Logger
 from kivy.app import App
 from kivy.config import ConfigParser
+from kivy.uix.image import Image
 from kivy.uix.settings import SettingsWithSpinner
 
 from drone.api.drone import Drone
@@ -31,6 +32,7 @@ class DroneCopilotApp(App):
         # Start connecting to the drone
         def on_connect_result(drone: Drone):
             if drone:
+                Image()
                 self.dispatch('on_connected', drone)
             else:
                 self.root.ids.video.set_frame_text(  # TODO: Something nicer

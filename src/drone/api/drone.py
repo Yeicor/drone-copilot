@@ -68,15 +68,15 @@ class Drone(ABC):
         """
         pass
 
-    @abstractmethod
     @property
+    @abstractmethod
     def target_speed(self) -> LinearAngular:
         """Gets the target speed of the drone in 3D space and returns "immediately".
         """
         pass
 
-    @abstractmethod
     @target_speed.setter
+    @abstractmethod
     def target_speed(self, speed: LinearAngular):
         """Sets the target speed of the drone in 3D space and returns "immediately".
         The drone must be flying for this to have any effect.
