@@ -16,6 +16,7 @@ from drone.api.drone import Drone
 from drone.api.linearangular import LinearAngular
 from drone.api.status import Status
 from drone.tello.camera import TelloCamera
+from drone.tello.status import TelloStatus
 
 
 class TelloDrone(Drone):
@@ -59,6 +60,10 @@ class TelloDrone(Drone):
         self._tello.subscribe(Tello.EVENT_LOG_DATA, lambda **kwargs: self._on_log_data(kwargs['data']))
         # Predefined set of cameras
         self._cameras = [TelloCamera(self, self._tello)]
+        # Status data
+        self.last_flight_data: Optional[FlightData] = None
+        self.last_log_data: Optional[LogData] = None
+        self.status_listeners: List[Callable[[Status], None]] = []
         # Finalizer (in case the user forgets to call del)
         weakref.finalize(self, self.__del__)
 
@@ -75,32 +80,74 @@ class TelloDrone(Drone):
         self._tello.land()
         callback(True)
 
-    def set_speed(self, speed: LinearAngular):
-        def speed_to_stick(_speed: float) -> float:
-            """Converts a speed in m/s to a stick value [-1.0, 1.0].
-            """
-            _speed_sigmoid = 1 / (1 + math.exp(-_speed))
-            return _speed_sigmoid * 2 - 1  # TODO: Customize the curve for closer to reality speeds
+    @staticmethod
+    def _speed_linear_to_stick(speed: float) -> float:
+        """Converts a speed in m/s to a stick value [-1.0, 1.0].
+        """
+        _speed_sigmoid = 1 / (1 + math.exp(-speed))
+        return _speed_sigmoid * 2 - 1  # TODO: Customize the curve for closer to reality speeds
 
+    @staticmethod
+    def _stick_to_speed_linear(stick: float) -> float:
+        """Converts a stick value [-1.0, 1.0] to a speed in m/s.
+        """
+        stick_sigmoid = (stick + 1) / 2
+        return math.log(stick_sigmoid / (1 - stick_sigmoid))
+
+    _speed_angular_to_stick = _speed_linear_to_stick  # TODO: Customize the curve for closer to reality speeds
+    _stick_to_speed_angular = _stick_to_speed_linear
+
+    @property
+    def target_speed(self) -> LinearAngular:
+        res = LinearAngular()
+        # Convert from joystick format
+        res.linear_x = self._stick_to_speed_linear(self._tello.right_y)
+        res.linear_y = self._stick_to_speed_linear(self._tello.right_y)
+        res.linear_z = self._stick_to_speed_linear(self._tello.right_y)
+        res.yaw = self._stick_to_speed_angular(self._tello.right_y)
+        return res
+
+    @target_speed.setter
+    def target_speed(self, speed: LinearAngular):
         # Convert data to joystick format
-        self._tello.left_x = speed_to_stick(speed.yaw)  # TODO: Different function for angles
-        self._tello.left_y = speed_to_stick(-speed.linear_z)
-        self._tello.right_x = speed_to_stick(speed.linear_y)
-        self._tello.right_y = speed_to_stick(speed.linear_x)
+        self._tello.left_x = self._speed_angular_to_stick(speed.yaw)  # TODO: Different function for angles
+        self._tello.left_y = self._speed_linear_to_stick(-speed.linear_z)
+        self._tello.right_x = self._speed_linear_to_stick(speed.linear_y)
+        self._tello.right_y = self._speed_linear_to_stick(speed.linear_x)
         # Data will be sent automatically on the next tick (internal Tello thread)
 
     def _on_flight_data(self, data: FlightData):
-        Logger.info(f"Tello _on_flight_data: {data}")
+        # Logger.info(f"Tello _on_flight_data: {data}")
+        self.last_flight_data = data
+        for listener in self.status_listeners:
+            listener(self.status)
 
     def _on_log_data(self, data: LogData):
-        Logger.info(f"Tello _on_log_data: {data}")
+        # Logger.info(f"Tello _on_log_data: {data}")
+        self.last_log_data = data
+        for listener in self.status_listeners:
+            listener(self.status)
 
     @property
     def status(self) -> Status:
-        pass
+        def data_ready() -> bool:
+            return self.last_flight_data is not None and self.last_log_data is not None
+
+        if data_ready():  # Fast path
+            return TelloStatus(self.last_flight_data, self.last_log_data)
+
+        # Slow path: wait for data to arrive (in another thread, connection confirmed),
+        # with a timeout (if the connection was lost just after connecting)
+        for i in range(10):
+            sleep(0.1)
+            if data_ready():
+                return TelloStatus(self.last_flight_data, self.last_log_data)
+
+        raise RuntimeError("Timeout waiting for status from the drone")
 
     def status_listen(self, callback: Callable[[Status], None]) -> Callable[[], None]:
-        pass
+        self.status_listeners.append(callback)
+        return lambda: self.status_listeners.remove(callback)
 
     def cameras(self) -> List[Camera]:
         return self._cameras

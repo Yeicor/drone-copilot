@@ -69,8 +69,16 @@ class Drone(ABC):
         pass
 
     @abstractmethod
-    def set_speed(self, speed: LinearAngular):
-        """Sets the speed of the drone in 3D space and returns "immediately".
+    @property
+    def target_speed(self) -> LinearAngular:
+        """Gets the target speed of the drone in 3D space and returns "immediately".
+        """
+        pass
+
+    @abstractmethod
+    @target_speed.setter
+    def target_speed(self, speed: LinearAngular):
+        """Sets the target speed of the drone in 3D space and returns "immediately".
         The drone must be flying for this to have any effect.
         The drone may take some time to reach the new speed, but will accept more speed commands meanwhile.
         If the drone cannot go that fast, it will go as fast as possible.
