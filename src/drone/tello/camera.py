@@ -79,8 +79,7 @@ class TelloCamera(Camera):  # TODO: Threadsafe implementation
 
         # The last listener cleans up the video decoder and starts ignoring any future video packets
         if len(self.listeners_video) == 0:
-            del self.decoder
-            self.tello.video_enabled = False
+            self.tello.video_enabled = False  # Will notify the thread to eventually stop
 
     @staticmethod
     def _on_video_data_h264_bytes_thread(self):
@@ -91,9 +90,11 @@ class TelloCamera(Camera):  # TODO: Threadsafe implementation
         while self.tello.video_enabled:
             self.decoder.feed(video_stream.read(2048))
             # Help the decoder start & recover from artifacts by requesting a sync point continuously
-            if time.time() - self.last_video_sync_point > 0.1:  # FIXME
+            if time.time() - self.last_video_sync_point > 0.34:  # FIXME
                 self.tello.start_video()
                 self.last_video_sync_point = time.time()
+        # final close
+        del self.decoder
         self.tello.video_stream = None
 
     # def _on_video_data_h264_bytes(self, data: bytes):
@@ -107,3 +108,5 @@ class TelloCamera(Camera):  # TODO: Threadsafe implementation
             self._listen_stop_photo(listener)
         for listener in self.listeners_video:
             self._listen_stop_video(listener)
+        while self.tello.video_stream is not None:
+            time.sleep(0.1)  # Wait for the video stream to be closed

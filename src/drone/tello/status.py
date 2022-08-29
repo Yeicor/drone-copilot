@@ -31,13 +31,14 @@ class TelloStatus(Status):
     def temperatures(self) -> Dict[str, float]:
         if self.flight_data is None:
             return super().temperatures
-        return {'temp': self.flight_data.temperature_height}  # TODO: Check values!
+        return {'temp': self.flight_data.temperature_height + 273.15}  # In kelvin TODO: Check values!
 
     @property
     def flying(self) -> bool:
         if self.flight_data is None:
             return super().flying
-        return self.flight_data.fly_time > 0
+        return self.flight_data.fly_time > 0  # Only true if flying with the motors on
+        # return self.flight_data.fly_mode == 6  # Detects flying without motors (fall/carrying in hand)
 
     @property
     def height(self) -> float:
@@ -80,6 +81,9 @@ class TelloStatus(Status):
         res.linear_z = self.log_data.imu.acc_z  # TODO: Check axes!
         # No angular acceleration available
         return res
+
+    def __str__(self):
+        return 'TelloStatus(flight_data={}, log_data=***)'.format(self.flight_data.__dict__)
 
 
 def quaternion_to_euler(x: float, y: float, z: float, w: float) -> (float, float, float):

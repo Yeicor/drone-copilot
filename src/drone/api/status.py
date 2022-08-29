@@ -29,7 +29,7 @@ class Status(ABC):
     @property
     @abstractmethod
     def temperatures(self) -> Dict[str, float]:
-        """The temperatures of the different components of the drone, as key-values indexed by name.
+        """The temperatures (in kelvin) of the different components of the drone, as key-values indexed by name.
         This should be regularly checked and a safety protocol implemented if any value is high.
         """
         return {}

@@ -2,6 +2,7 @@
 #: import Settings kivy.uix.settings
 #: import MyVideo ui.video.video
 #: import Joystick kivy-joystick.Joystick
+#: import ShadowLabel ui.util.shadow
 
 # ============ TEMPLATES ============
 
@@ -109,17 +110,27 @@ FloatLayout:
         size_hint: (.05 * float(app.config.get('ui', 'scaling')), .3 * float(app.config.get('ui', 'scaling')))
         pos_hint: {'x': 0, 'y': 1 - self.size_hint[1]}
         opacity: 0.5 * float(app.config.get('ui', 'opacity'))
-        AnchorLayout:
-            Image:
-                source: 'assets/other/battery.png'
-                pos: self.parent.pos
-                size: self.parent.size
-                allow_stretch: True
-            Label:
+        Image:
+            source: 'assets/other/battery.png'
+            allow_stretch: True
+            ShadowLabel:
                 id: battery_label
                 text: '??%'  # TODO: Tooltips for most UI elements!
+                pos: self.parent.pos
+                size: self.parent.size
                 font_size: self.parent.height * 0.5
-                color: [1, 1, 1, 1]  # TODO: Red for low!
+                color: [1, 1, 1]  # TODO: Red for low!
+        FloatLayout:
+            Image:
+                source: 'assets/other/thermometer.png'
+                pos: (self.parent.pos[0] - self.parent.size[0]/2 + 10, self.parent.pos[1])
+                allow_stretch: True
+                ShadowLabel:
+                    id: temperature_label
+                    text: '??ºC'
+                    pos: (self.parent.pos[0] + self.parent.size[0]/2 + 5, self.parent.pos[1])
+                    size: self.parent.size
+                    font_size: self.parent.height * 0.5
         BoxLayout: # Just a spacer to move the buttons to the top
             size_hint: (None, 4)
 
@@ -133,9 +144,16 @@ FloatLayout:
         Button:
             on_release: app.open_settings()
             Image:
-                source: 'assets/other/settings.png'
+                source: 'assets/other/settings.png' # TODO: Easier to see icons (shadows)
+                pos: self.parent.pos
+                size: self.parent.size
+                allow_stretch: True
+        Button:
+            on_release: app.dispatch('on_drone_photo_request')
+            Image:
+                source: 'assets/other/camera.png'
                 pos: self.parent.pos
                 size: self.parent.size
                 allow_stretch: True
         BoxLayout: # Just a spacer to move the buttons to the top
-            size_hint: (None, 4)
+            size_hint: (None, 3)
