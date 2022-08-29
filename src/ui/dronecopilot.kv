@@ -53,7 +53,7 @@ FloatLayout:
             BoxLayout: # Just a spacer to move the buttons to the bottom
                 size_hint: (None, 4)
             RelativeLayout:
-                Button:
+                ShadowButton:
                     id: takeoff_land_button
                     text: 'Takeoff'
                     pos_hint:
@@ -116,23 +116,24 @@ FloatLayout:
             ShadowLabel:
                 id: battery_label
                 text: '??%'  # TODO: Tooltips for most UI elements!
+                # TODO: Red for low!
                 pos: self.parent.pos
                 size: self.parent.size
                 font_size: self.parent.height * 0.5
-                color: [1, 1, 1]  # TODO: Red for low!
         FloatLayout:
             Image:
                 source: 'assets/other/thermometer.png'
-                pos: (self.parent.pos[0] - self.parent.size[0]/2 + 10, self.parent.pos[1])
+                pos: (self.parent.pos[0] - self.size[0]/4, self.parent.pos[1])
                 allow_stretch: True
                 ShadowLabel:
                     id: temperature_label
                     text: '??ºC'
-                    pos: (self.parent.pos[0] + self.parent.size[0]/2 + 5, self.parent.pos[1])
+                    # TODO: Red for high!
+                    pos: (self.parent.pos[0] + self.size[0]/2, self.parent.pos[1])
                     size: self.parent.size
                     font_size: self.parent.height * 0.5
         BoxLayout: # Just a spacer to move the buttons to the top
-            size_hint: (None, 4)
+            size_hint: (None, 5)
 
     # === TOP-RIGHT SETTINGS ===
     BoxLayout:
@@ -141,18 +142,30 @@ FloatLayout:
         size_hint: (.04 * float(app.config.get('ui', 'scaling')), .3 * float(app.config.get('ui', 'scaling')))
         pos_hint: {'x': 1 - self.size_hint[0], 'y': 1 - self.size_hint[1]}
         opacity: 0.25 * float(app.config.get('ui', 'opacity'))
-        Button:
+        ShadowButton:
             on_release: app.open_settings()
             Image:
                 source: 'assets/other/settings.png' # TODO: Easier to see icons (shadows)
                 pos: self.parent.pos
                 size: self.parent.size
                 allow_stretch: True
-        Button:
+            Image:
+                id: keyboard_o
+                source: 'assets/keyboard/O_Key_Dark.png'
+                pos: (self.parent.pos[0] - self.parent.size[0] + 5, self.parent.pos[1])
+                size: self.parent.size
+                allow_stretch: True
+        ShadowButton:
             on_release: app.dispatch('on_drone_photo_request')
             Image:
                 source: 'assets/other/camera.png'
                 pos: self.parent.pos
+                size: self.parent.size
+                allow_stretch: True
+            Image:
+                id: keyboard_p
+                source: 'assets/keyboard/P_Key_Dark.png'
+                pos: (self.parent.pos[0] - self.parent.size[0] + 5, self.parent.pos[1])
                 size: self.parent.size
                 allow_stretch: True
         BoxLayout: # Just a spacer to move the buttons to the top

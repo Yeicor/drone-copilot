@@ -142,4 +142,7 @@ class StreamingVideoSource(threading.Thread, EventDispatcher):
         # Clean up the video player
         if self.player:
             self.player.close_player()
+        # Clean up the socket
+        self.out.close()
+        self.socket_out.close()
         Logger.info('Video: released')
