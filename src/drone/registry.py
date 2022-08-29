@@ -28,7 +28,7 @@ register_settings_section_meta('Connection', 0, [
 ])
 
 
-def drone_connect_auto(config: ConfigParser, callback: Callable[[Optional[Type[Drone]]], None]):
+def drone_connect_auto(config: ConfigParser, callback: Callable[[Optional[Drone]], None]):
     """Connects to the drone using the specified app configuration
     """
     # Figure out the drone model to connect to

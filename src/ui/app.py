@@ -141,9 +141,9 @@ class DroneCopilotApp(App):
             self.action_takeoff_land()
         # Manage right panel shortcuts
         if key == Keyboard.keycodes['p']:
-            self.action_request_photo()
+            self.action_take_photo()
         elif key == Keyboard.keycodes['o']:
-            self.action_open_close_settings()
+            self.action_toggle_settings()
         # Undocumented extras
         if key == Keyboard.keycodes['f11']:
             self.root_window.screenshot()
@@ -151,6 +151,8 @@ class DroneCopilotApp(App):
     # ==================== ACTIONS triggered by events ====================
     def action_joysticks(self, joystick_left_x: Optional[float], joystick_left_y: Optional[float],
                          joystick_right_x: Optional[float], joystick_right_y: Optional[float]):
+        Logger.debug('DroneCopilotApp: action_joysticks: {} {} {} {}'.format(
+            joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y))
         if self.drone and self.drone.status.flying:
             speed_m_per_s = 0.5  # TODO: Configurable
             if joystick_right_y:
@@ -164,6 +166,7 @@ class DroneCopilotApp(App):
                 self.drone.target_speed.yaw = joystick_left_x * speed_angular
 
     def action_takeoff_land(self):
+        # Logger.debug('DroneCopilotApp: action_takeoff_land')
         if self.drone:
             if self.drone.status.flying:
                 self.drone.land(lambda: self.update_takeoff_button())
@@ -172,7 +175,8 @@ class DroneCopilotApp(App):
         else:
             Logger.error('DroneCopilotApp: takeoff/land: no drone connected')
 
-    def action_request_photo(self):
+    def action_take_photo(self):
+        # Logger.debug('DroneCopilotApp: action_take_photo')
         if self.drone_camera:
             resolution = self.drone_camera.resolutions_photo[0] if len(self.drone_camera.resolutions_photo) > 0 else (
                 640, 480)  # TODO: Configurable
@@ -182,11 +186,13 @@ class DroneCopilotApp(App):
             # TODO: Unsupported photo message
             Logger.error('DroneCopilotApp: unsupported photo request')
 
-    def action_open_close_settings(self):
+    def action_toggle_settings(self):
+        # Logger.debug('DroneCopilotApp: action_toggle_settings')
         if not self.open_settings():
             self.close_settings()
 
     def update_takeoff_button(self):
+        # Logger.debug('DroneCopilotApp: update_takeoff_button')
         if self.drone and self.drone.status.flying:
             self.root.ids.takeoff_land_button.text = 'Land'
         else:

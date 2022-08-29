@@ -3,6 +3,7 @@
 #: import MyVideo ui.video.video
 #: import Joystick kivy-joystick.Joystick
 #: import ShadowLabel ui.util.shadow
+#: import Clock kivy.clock.Clock
 
 # ============ TEMPLATES ============
 
@@ -24,6 +25,9 @@ FloatLayout:
             size: (.4 * root.height * float(app.config.get('ui', 'scaling')), .4 * root.height * float(app.config.get('ui', 'scaling')))
             Joystick:
                 id: joystick_left
+                on_touch_down: Clock.schedule_once(lambda _: app.action_joysticks(self.pad_x, self.pad_y, None, None), 0) if self.collide_point(args[1].x, args[1].y) else None
+                on_touch_move: Clock.schedule_once(lambda _: app.action_joysticks(self.pad_x, self.pad_y, None, None), 0) if self.collide_point(args[1].x, args[1].y) else None
+                on_touch_up: Clock.schedule_once(lambda _: app.action_joysticks(self.pad_x, self.pad_y, None, None), 0) if self.collide_point(args[1].x, args[1].y) else None
             Image:
                 id: keyboard_w
                 source: 'assets/keyboard/W_Key_Dark.png'
@@ -56,6 +60,7 @@ FloatLayout:
                 ShadowButton:
                     id: takeoff_land_button
                     text: 'Takeoff'
+                    on_release: app.action_takeoff_land()
                     pos_hint:
                         { 'x': 0.5 - self.width / 2 / max(self.parent.width, 1), \
                         'y': 0.5 - self.height / 2 / max(self.parent.height, 1) }
@@ -76,7 +81,10 @@ FloatLayout:
             size_hint: (None, None)
             size: (.4 * root.height * float(app.config.get('ui', 'scaling')), .4 * root.height * float(app.config.get('ui', 'scaling')))
             Joystick:
-                id: joystick_left
+                id: joystick_right
+                on_touch_down: Clock.schedule_once(lambda _: app.action_joysticks(None, None, self.pad_x, self.pad_y), 0) if self.collide_point(args[1].x, args[1].y) else None
+                on_touch_move: Clock.schedule_once(lambda _: app.action_joysticks(None, None, self.pad_x, self.pad_y), 0) if self.collide_point(args[1].x, args[1].y) else None
+                on_touch_up: Clock.schedule_once(lambda _: app.action_joysticks(None, None, self.pad_x, self.pad_y), 0) if self.collide_point(args[1].x, args[1].y) else None
             Image:
                 id: keyboard_up
                 source: 'assets/keyboard/Arrow_Up_Key_Dark.png'
@@ -143,7 +151,7 @@ FloatLayout:
         pos_hint: {'x': 1 - self.size_hint[0], 'y': 1 - self.size_hint[1]}
         opacity: 0.25 * float(app.config.get('ui', 'opacity'))
         ShadowButton:
-            on_release: app.open_settings()
+            on_release: app.action_toggle_settings()
             Image:
                 source: 'assets/other/settings.png' # TODO: Easier to see icons (shadows)
                 pos: self.parent.pos
@@ -152,11 +160,11 @@ FloatLayout:
             Image:
                 id: keyboard_o
                 source: 'assets/keyboard/O_Key_Dark.png'
-                pos: (self.parent.pos[0] - self.parent.size[0] + 5, self.parent.pos[1])
-                size: self.parent.size
+                pos: (self.parent.pos[0] - self.size[0]*0.25, self.parent.pos[1] - self.size[1]*0.25)
+                size: self.parent.size[0]/2, self.parent.size[1]/2
                 allow_stretch: True
         ShadowButton:
-            on_release: app.dispatch('on_drone_photo_request')
+            on_release: app.action_take_photo()
             Image:
                 source: 'assets/other/camera.png'
                 pos: self.parent.pos
@@ -165,8 +173,14 @@ FloatLayout:
             Image:
                 id: keyboard_p
                 source: 'assets/keyboard/P_Key_Dark.png'
-                pos: (self.parent.pos[0] - self.parent.size[0] + 5, self.parent.pos[1])
-                size: self.parent.size
+                pos: (self.parent.pos[0] - self.size[0]*0.25, self.parent.pos[1] - self.size[1]*0.25)
+                size: self.parent.size[0]/2, self.parent.size[1]/2
+                allow_stretch: True
+            Image:
+                id: gamepad_b
+                source: 'assets/controller/XboxSeriesX_B.png'
+                pos: (self.parent.pos[0] + self.size[0]*0.4, self.parent.pos[1] - self.size[1]*0.25)
+                size: self.parent.size[0]/2, self.parent.size[1]/2
                 allow_stretch: True
         BoxLayout: # Just a spacer to move the buttons to the top
             size_hint: (None, 3)

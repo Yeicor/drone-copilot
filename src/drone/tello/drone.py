@@ -73,12 +73,16 @@ class TelloDrone(Drone):
     def takeoff(self, callback: Callable[[bool], None]):
         # TODO: Check status
         self._tello.takeoff()
-        callback(True)
+        # HACK: Wait for takeoff to complete
+        # TODO: Check status to see if it's actually taken off and run the callback just as it frees controls
+        threading.Thread(target=lambda: sleep(2.5) or callback(True)).start()
 
     def land(self, callback: Callable[[bool], None]):
         # TODO: Check status
         self._tello.land()
-        callback(True)
+        # HACK: Wait for land to complete
+        # TODO: Check status to see if it's actually taken off and run the callback just as it frees controls
+        threading.Thread(target=lambda: sleep(5.0) or callback(True)).start()
 
     @staticmethod
     def _speed_linear_to_stick(speed: float) -> float:
