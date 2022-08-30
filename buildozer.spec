@@ -37,7 +37,7 @@ version.filename = %(source.dir)s/main.py
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,camera4kivy,gestures4kivy,numpy,tflite-runtime,opencv,ffpyplayer,tellopy@git+https://github.com/hanyazou/TelloPy@develop-0.7.0,git+https://github.com/Yeicor/kivy-joystick@master,plyer
+requirements = python3,kivy,camera4kivy,gestures4kivy,numpy,tflite-runtime,opencv,ffpyplayer,tellopy@git+https://github.com/hanyazou/TelloPy@develop-0.7.0,git+https://github.com/Yeicor/kivy-joystick@master,plyer,Pillow
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes

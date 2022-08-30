@@ -58,7 +58,7 @@ FloatLayout:
                 ShadowButton:
                     id: takeoff_land_button
                     text: 'Takeoff'
-                    on_release: app.action_takeoff_land()
+                    on_press: app.action_takeoff_land()
                     pos_hint:
                         { 'x': 0.5 - self.width / 2 / max(self.parent.width, 1), \
                         'y': 0.5 - self.height / 2 / max(self.parent.height, 1) }
@@ -147,7 +147,7 @@ FloatLayout:
         pos_hint: {'x': 1 - self.size_hint[0], 'y': 1 - self.size_hint[1]}
         opacity: 0.25 * float(app.config.get('ui', 'opacity'))
         ShadowButton:
-            on_release: app.action_toggle_settings()
+            on_press: app.action_toggle_settings()
             Image:
                 source: 'assets/other/settings.png' # TODO: Easier to see icons (shadows)
                 pos: self.parent.pos
@@ -160,7 +160,7 @@ FloatLayout:
                 size: self.parent.size[0]/2, self.parent.size[1]/2
                 allow_stretch: True
         ShadowButton:
-            on_release: app.action_take_photo()
+            on_press: app.action_take_photo()
             Image:
                 source: 'assets/other/camera.png'
                 pos: self.parent.pos

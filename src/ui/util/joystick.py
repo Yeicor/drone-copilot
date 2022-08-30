@@ -20,6 +20,12 @@ class MyJoystick(joystick.Joystick):
             self.pad_background_color = self.default_pad_background_color
         self._update_pad()  # Update colors
 
+    def force_pad_x_pos(self, x: float):
+        self.ids.pad.center[0] = self.center[0] + x * self.size[0] / 2
+
+    def force_pad_y_pos(self, y: float):
+        self.ids.pad.center[1] = self.center[1] + y * self.size[1] / 2
+
     def on_touch_down(self, touch):
         if self.disabled:
             return

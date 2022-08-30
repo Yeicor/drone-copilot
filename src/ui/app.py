@@ -1,8 +1,9 @@
 import time
-from typing import Optional, Callable, List
+from typing import Optional, Callable, List, Dict
 
 import numpy as np
 import plyer
+from PIL import Image
 from kivy import platform, Logger
 from kivy.app import App
 from kivy.config import ConfigParser
@@ -37,12 +38,17 @@ class DroneCopilotApp(App):
         self.drone_cameras: Optional[List[Camera]] = None
         self.drone_camera: Optional[Camera] = None
 
-    # ==================== boilerplate ====================
-
+    # ==================== "boilerplate" ====================
     def build(self):
         if platform == 'android':
             androidhacks.setup()
-        Window.bind(on_keyboard=lambda *args: self.on_keyboard(*args))
+        Window.bind(on_key_down=lambda *args: self.on_keyboard(*args, down=True),
+                    on_key_up=lambda *args: self.on_keyboard(*(list(args) + [None, None]), down=False),
+                    on_joy_axis=lambda *args: self.on_gamepad_axis(*args),
+                    # Ignored (for now): on_joy_hat=lambda *args: self.on_gamepad_hat(*args),
+                    # Ignored: on_joy_ball=lambda *args: self.on_gamepad_ball(*args),
+                    on_joy_button_down=lambda *args: self.on_gamepad_press(*args, down=True),
+                    on_joy_button_up=lambda *args: self.on_gamepad_press(*args, down=False))
 
     def build_settings(self, settings):
         settings.add_json_panel(self.title, self.config, data=get_settings_meta())
@@ -60,7 +66,6 @@ class DroneCopilotApp(App):
         super(DroneCopilotApp, self).dispatch(*args, **kwargs)
 
     # ==================== LISTENERS & HANDLERS ====================
-
     def on_start(self):
         # Start connecting to the drone
         def on_connect_result(drone: Drone):
@@ -134,68 +139,110 @@ class DroneCopilotApp(App):
             del self.drone
         Logger.info('DroneCopilotApp: destroyed')
 
-    # ==================== KEYBOARD / GAMEPAD events ====================
+    # ==================== KEYBOARD / GAMEPAD events (UI events are in the .kv file) ====================
+    on_keyboard_already_pressed: Dict[int, bool] = {}
+
     # noinspection PyUnusedLocal
-    def on_keyboard(self, instance, key, scancode, codepoint, modifiers):  # TODO: on_gamepad!
+    def on_keyboard(self, window: any, key: int, scancode: int, codepoint: str, modifiers: List[any], down: bool):
+        just_pressed = not self.on_keyboard_already_pressed.get(key, False) and down
+        if down:
+            self.on_keyboard_already_pressed[key] = True
+        else:
+            del self.on_keyboard_already_pressed[key]
         # Manage joysticks to control drone movements
-        joystick_left_x = 0
-        joystick_left_y = 0
-        joystick_right_x = 0
-        joystick_right_y = 0
-        if key == Keyboard.keycodes['w']:
-            joystick_left_y = 1
-        elif key == Keyboard.keycodes['s']:
-            joystick_left_y = -1
-        if key == Keyboard.keycodes['a']:
-            joystick_left_x = -1
-        elif key == Keyboard.keycodes['d']:
-            joystick_left_x = 1
-        if key == Keyboard.keycodes['up']:
-            joystick_right_y = 1
-        elif key == Keyboard.keycodes['down']:
-            joystick_right_y = -1
-        if key == Keyboard.keycodes['left']:
-            joystick_right_x = -1
-        elif key == Keyboard.keycodes['right']:
-            joystick_right_x = 1
-        if joystick_left_x != 0 or joystick_left_y != 0 or joystick_right_x != 0 or joystick_right_y != 0:
-            self.action_joysticks(joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y)
+        if just_pressed or not down:  # Less useless action_joysticks calls
+            joystick_left_x = None  # keep by default
+            joystick_left_y = None
+            joystick_right_x = None
+            joystick_right_y = None
+            if key == Keyboard.keycodes['w'] and down:
+                joystick_left_y = 1
+            elif key == Keyboard.keycodes['s'] and down:
+                joystick_left_y = -1
+            elif (key == Keyboard.keycodes['w'] or key == Keyboard.keycodes['s']) and not down:
+                joystick_left_y = 0
+            if key == Keyboard.keycodes['a'] and down:
+                joystick_left_x = -1
+            elif key == Keyboard.keycodes['d'] and down:
+                joystick_left_x = 1
+            elif (key == Keyboard.keycodes['a'] or key == Keyboard.keycodes['d']) and not down:
+                joystick_left_x = 0
+            if key == Keyboard.keycodes['up'] and down:
+                joystick_right_y = 1
+            elif key == Keyboard.keycodes['down'] and down:
+                joystick_right_y = -1
+            elif (key == Keyboard.keycodes['up'] or key == Keyboard.keycodes['down']) and not down:
+                joystick_right_y = 0
+            if key == Keyboard.keycodes['left'] and down:
+                joystick_right_x = -1
+            elif key == Keyboard.keycodes['right'] and down:
+                joystick_right_x = 1
+            elif (key == Keyboard.keycodes['left'] or key == Keyboard.keycodes['right']) and not down:
+                joystick_right_x = 0
+            # FIXME: Normalize when 2 directions are enabled at the same time.
+            if joystick_left_x is not None or joystick_left_y is not None or \
+                    joystick_right_x is not None or joystick_right_y is not None:
+                self.action_joysticks(joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y)
         # Manage takeoff/land shortcut
-        if key == Keyboard.keycodes['spacebar']:
+        if just_pressed and key == Keyboard.keycodes['spacebar']:
             self.action_takeoff_land()
         # Manage right panel shortcuts
-        if key == Keyboard.keycodes['p']:
+        if just_pressed and key == Keyboard.keycodes['p']:
             self.action_take_photo()
-        elif key == Keyboard.keycodes['o']:
+        elif just_pressed and key == Keyboard.keycodes['o']:
             self.action_toggle_settings()
         # Undocumented extras
-        if key == Keyboard.keycodes['f11']:
-            # HACK: Screenshot code as default can't customize the file path properly!
-            filename = f'{plyer.storagepath.get_pictures_dir()}/kivy-drone-copilot-screenshot-{time.time()}.png'
-            from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
-            width, height = self.root_window.size
-            data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
-            # noinspection PyProtectedMember
-            self.root_window._win.save_bytes_in_png(filename, data, width, height)
-            Logger.debug('Window: Screenshot saved at <%s>' % filename)
+        if just_pressed and key == Keyboard.keycodes['f11']:
+            self.action_screenshot_app()
+
+    def on_gamepad_axis(self, window: any, gamepad: int, axis: int, value: int):
+        # Logger.debug('DroneCopilotApp: on_gamepad_axis: {} -> {}'.format(axis, value))
+        # NOTE: Only XBox 360 controller tested, use a virtual driver if the axis are not the same
+        if axis == 0:  # Left stick X
+            self.action_joysticks(value / 32768, None, None, None)
+        elif axis == 1:  # Left stick Y
+            self.action_joysticks(None, -value / 32768, None, None)
+        elif axis == 3:  # Right stick X
+            self.action_joysticks(None, None, value / 32768, None)
+        elif axis == 4:  # Right stick Y
+            self.action_joysticks(None, None, None, -value / 32768)
+
+    def on_gamepad_press(self, window: any, gamepad: int, button: int, down: bool):
+        # Logger.debug('DroneCopilotApp: on_gamepad_press: {}, {}, {}'.format(gamepad, button, down))
+        if button == 3 and down:  # Y
+            self.action_takeoff_land()
+        elif button == 1 and down:  # B
+            self.action_take_photo()
 
     # ==================== ACTIONS triggered by events ====================
     def action_joysticks(self, joystick_left_x: Optional[float], joystick_left_y: Optional[float],
                          joystick_right_x: Optional[float], joystick_right_y: Optional[float]):
         Logger.debug('DroneCopilotApp: action_joysticks: {} {} {} {}'.format(
             joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y))
+
         if self.drone and self.drone.status.flying:
-            speed_m_per_s = 2.0  # TODO: Configurable
+            # Update UI to show the current joystick values (only if they are enabled)
+            if joystick_left_x is not None:
+                self.root.ids.joystick_left.force_pad_x_pos(joystick_left_x)
+            if joystick_left_y is not None:
+                self.root.ids.joystick_left.force_pad_y_pos(joystick_left_y)
+            if joystick_right_x is not None:
+                self.root.ids.joystick_right.force_pad_x_pos(joystick_right_x)
+            if joystick_right_y is not None:
+                self.root.ids.joystick_right.force_pad_y_pos(joystick_right_y)
+
+            # Actually apply them to the drone
+            max_speed_m_per_s = 2.0  # TODO: Configurable
             target_speed_to_update = self.drone.target_speed  # Read previous value for partial updates
             if joystick_right_y:
-                target_speed_to_update.linear_x = joystick_right_y * speed_m_per_s
+                target_speed_to_update.linear_x = joystick_right_y * max_speed_m_per_s
             if joystick_right_x:
-                target_speed_to_update.linear_y = joystick_right_x * speed_m_per_s
+                target_speed_to_update.linear_y = joystick_right_x * max_speed_m_per_s
             if joystick_left_y:
-                target_speed_to_update.linear_z = -joystick_left_y * speed_m_per_s
-            speed_angular = 2.0  # TODO: Configurable
+                target_speed_to_update.linear_z = -joystick_left_y * max_speed_m_per_s
+            max_speed_angular = 2.0  # TODO: Configurable
             if joystick_left_x:
-                target_speed_to_update.yaw = joystick_left_x * speed_angular
+                target_speed_to_update.yaw = joystick_left_x * max_speed_angular
             self.drone.target_speed = target_speed_to_update  # Actually update the target speed
 
     def action_takeoff_land(self):
@@ -233,3 +280,13 @@ class DroneCopilotApp(App):
         # Logger.debug('DroneCopilotApp: action_toggle_settings')
         if not self.open_settings():
             self.close_settings()
+
+    def action_screenshot_app(self):
+        # HACK: Screenshot code as default can't customize the file path properly!
+        filename = f'{plyer.storagepath.get_pictures_dir()}/kivy-drone-copilot-screenshot-' \
+                   f'{str(time.time()).replace(".", "-")}.jpg'
+        from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        width, height = self.root_window.size
+        data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
+        Image.frombuffer('RGB', (width, height), data).transpose(Image.FLIP_TOP_BOTTOM).save(filename)
+        Logger.debug('DroneCopilotApp: App screenshot saved at <%s>' % filename)
