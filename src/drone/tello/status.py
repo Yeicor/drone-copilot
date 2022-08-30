@@ -37,8 +37,7 @@ class TelloStatus(Status):
     def flying(self) -> bool:
         if self.flight_data is None:
             return super().flying
-        return self.flight_data.fly_time > 0  # Only true if flying with the motors on
-        # return self.flight_data.fly_mode == 6  # Detects flying without motors (fall/carrying in hand)
+        return self.flight_data.fly_mode == 6  # Detects flying without motors (fall/carrying in hand)
 
     @property
     def height(self) -> float:

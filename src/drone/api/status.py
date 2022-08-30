@@ -38,6 +38,7 @@ class Status(ABC):
     @abstractmethod
     def flying(self) -> bool:
         """Whether the drone is currently flying.
+        This will also detect if the drone is falling or being carried (motors off).
         """
         return False
 

@@ -4,6 +4,7 @@ from typing import Optional, Callable, List
 import numpy as np
 from kivy import platform, Logger
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.config import ConfigParser
 from kivy.core.window import Window, Keyboard
 from kivy.uix.settings import SettingsWithSpinner
@@ -69,6 +70,7 @@ class DroneCopilotApp(App):
         Logger.info('DroneCopilotApp: connected to drone!')
         # Listen for status events
         self.listen_status_stop = self.drone.listen_status(lambda status: self.dispatch('on_drone_status', status))
+        Clock.schedule_interval(lambda dt: self.update_takeoff_button(), 1.0)
         # Connect to video camera (if available)
         self.root.ids.video.set_frame_text('Connecting to the drone\'s video feed...')
         self.drone_cameras = self.drone.cameras()
@@ -82,13 +84,19 @@ class DroneCopilotApp(App):
         else:
             self.root.ids.video.set_frame_text('No video feed available for this drone, :(')
 
+    def update_takeoff_button(self):
+        # Logger.debug('DroneCopilotApp: update_takeoff_button')
+        if self.drone and self.drone.status.flying:
+            self.root.ids.takeoff_land_button.text = 'Land'
+        else:
+            self.root.ids.takeoff_land_button.text = 'Takeoff'
+
     def on_drone_status(self, drone_status: Status):
         Logger.info('DroneCopilotApp: STATUS: {}'.format(str(drone_status)))
         if self.status_last_battery != drone_status.battery:
             self.status_last_battery = drone_status.battery
             self.root.ids.battery_label.text = '{}%'.format(int(self.status_last_battery * 100))
             Logger.info('DroneCopilotApp: battery: {}%'.format(int(self.status_last_battery * 100)))
-            self.update_takeoff_button()  # HACK: regularly update takeoff button, but not too much
         cur_max_temp_c = max(drone_status.temperatures.values()) - 273.15  # Kelvin to Celsius. TODO: Configure units
         if self.status_last_max_temperature != cur_max_temp_c:
             self.status_last_max_temperature = cur_max_temp_c
@@ -154,14 +162,14 @@ class DroneCopilotApp(App):
         Logger.debug('DroneCopilotApp: action_joysticks: {} {} {} {}'.format(
             joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y))
         if self.drone and self.drone.status.flying:
-            speed_m_per_s = 0.5  # TODO: Configurable
+            speed_m_per_s = 2.0  # TODO: Configurable
             if joystick_right_y:
                 self.drone.target_speed.linear_x = joystick_right_y * speed_m_per_s
             if joystick_right_x:
                 self.drone.target_speed.linear_y = joystick_right_x * speed_m_per_s
             if joystick_left_y:
                 self.drone.target_speed.linear_z = -joystick_left_y * speed_m_per_s
-            speed_angular = 0.5  # TODO: Configurable
+            speed_angular = 5.0  # TODO: Configurable
             if joystick_left_x:
                 self.drone.target_speed.yaw = joystick_left_x * speed_angular
 
@@ -169,9 +177,9 @@ class DroneCopilotApp(App):
         # Logger.debug('DroneCopilotApp: action_takeoff_land')
         if self.drone:
             if self.drone.status.flying:
-                self.drone.land(lambda: self.update_takeoff_button())
+                self.drone.land(lambda: Logger.info('DroneCopilotApp: landed!'))
             else:
-                self.drone.takeoff(lambda: self.update_takeoff_button())
+                self.drone.takeoff(lambda: Logger.info('DroneCopilotApp: took off!'))
         else:
             Logger.error('DroneCopilotApp: takeoff/land: no drone connected')
 
@@ -190,10 +198,3 @@ class DroneCopilotApp(App):
         # Logger.debug('DroneCopilotApp: action_toggle_settings')
         if not self.open_settings():
             self.close_settings()
-
-    def update_takeoff_button(self):
-        # Logger.debug('DroneCopilotApp: update_takeoff_button')
-        if self.drone and self.drone.status.flying:
-            self.root.ids.takeoff_land_button.text = 'Land'
-        else:
-            self.root.ids.takeoff_land_button.text = 'Takeoff'

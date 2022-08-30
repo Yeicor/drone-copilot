@@ -119,6 +119,7 @@ class TelloDrone(Drone):
         self._tello.right_x = self._speed_linear_to_stick(speed.linear_y)
         self._tello.right_y = self._speed_linear_to_stick(speed.linear_x)
         # Data will be sent automatically on the next tick (internal Tello thread)
+        self._tello.__send_stick_command()  # Send the data immediately
 
     def _on_flight_data(self, data: FlightData):
         # Logger.info(f"Tello _on_flight_data: {data}")
