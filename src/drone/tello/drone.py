@@ -6,6 +6,7 @@ import weakref
 from time import sleep
 from typing import Callable, Optional, List
 
+from kivy.clock import Clock
 from tellopy import Tello
 from tellopy._internal.logger import LOG_INFO
 from tellopy._internal.protocol import FlightData, LogData
@@ -75,14 +76,14 @@ class TelloDrone(Drone):
         self._tello.takeoff()
         # HACK: Wait for takeoff to complete
         # TODO: Check status to see if it's actually taken off and run the callback just as it frees controls
-        threading.Thread(target=lambda: sleep(2.5) or callback(True)).start()
+        Clock.schedule_once(lambda _: callback(True), 2.5)
 
     def land(self, callback: Callable[[bool], None]):
         # TODO: Check status
         self._tello.land()
         # HACK: Wait for land to complete
         # TODO: Check status to see if it's actually taken off and run the callback just as it frees controls
-        threading.Thread(target=lambda: sleep(5.0) or callback(True)).start()
+        Clock.schedule_once(lambda _: callback(True), 5.0)
 
     @staticmethod
     def _speed_linear_to_stick(speed: float) -> float:

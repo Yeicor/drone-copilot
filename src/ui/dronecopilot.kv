@@ -80,7 +80,7 @@ FloatLayout:
             size: (.4 * root.height * float(app.config.get('ui', 'scaling')), .4 * root.height * float(app.config.get('ui', 'scaling')))
             MyJoystick:
                 id: joystick_right
-                on_pad: Clock.schedule_once(lambda _: app.action_joysticks(self.pad_x, self.pad_y, None, None), 0)
+                on_pad: Clock.schedule_once(lambda _: app.action_joysticks(None, None, self.pad_x, self.pad_y), 0)
             Image:
                 id: keyboard_up
                 source: 'assets/keyboard/Arrow_Up_Key_Dark.png'

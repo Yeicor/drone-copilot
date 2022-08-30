@@ -248,14 +248,12 @@ class DroneCopilotApp(App):
     def action_takeoff_land(self):
         def action_callback(taking_off: bool):
             Logger.info('DroneCopilotApp: action_takeoff_land callback: taking_off={}'.format(taking_off))
-            self.root.ids.takeoff_land_button.disabled = False  # Can take off/land again
             if not taking_off:  # Stop control after landing
                 self.root.ids.joystick_left.disabled = True
                 self.root.ids.joystick_right.disabled = True
 
         # Logger.debug('DroneCopilotApp: action_takeoff_land')
         if self.drone:
-            self.root.ids.takeoff_land_button.disabled = True
             if self.drone.status.flying:  # Land
                 self.drone.land(lambda: action_callback(False))
             else:  # Take off
