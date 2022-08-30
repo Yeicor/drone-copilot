@@ -1,8 +1,6 @@
-import time
 from typing import Optional, Callable, List, Dict
 
 import numpy as np
-import plyer
 from PIL import Image
 from kivy import platform, Logger
 from kivy.app import App
@@ -15,6 +13,7 @@ from drone.api.drone import Drone
 from drone.api.status import Status
 from drone.registry import drone_connect_auto
 from ui.settings.registry import get_settings_meta, get_settings_defaults
+from ui.util.photo import save_image_to_pictures
 from util import androidhacks
 
 
@@ -102,18 +101,19 @@ class DroneCopilotApp(App):
             self.root.ids.video.set_frame_text('No video feed available for this drone, :(')
 
     def on_drone_status(self, drone_status: Status):
-        Logger.info('DroneCopilotApp: STATUS: {}'.format(str(drone_status)))
+        # Logger.debug('DroneCopilotApp: STATUS: {}'.format(str(drone_status)))
         # BATTERY
         if self.status_last_battery != drone_status.battery:
             self.status_last_battery = drone_status.battery
             self.root.ids.battery_label.text = '{}%'.format(int(self.status_last_battery * 100))
             Logger.info('DroneCopilotApp: battery: {}%'.format(int(self.status_last_battery * 100)))
         # TEMPERATURE
-        cur_max_temp_c = max(drone_status.temperatures.values()) - 273.15  # Kelvin to Celsius. TODO: Configure units
-        if self.status_last_max_temperature != cur_max_temp_c:
-            self.status_last_max_temperature = cur_max_temp_c
-            self.root.ids.temperature_label.text = '{:.1f}ºC'.format(self.status_last_max_temperature)
-            Logger.info('DroneCopilotApp: temperature: {}ºC'.format(self.status_last_max_temperature))
+        if len(drone_status.temperatures) > 0:
+            cur_max_temp_c = max(drone_status.temperatures.values()) - 273.15  # Kelvin to Celsius. TODO: Configure
+            if self.status_last_max_temperature != cur_max_temp_c:
+                self.status_last_max_temperature = cur_max_temp_c
+                self.root.ids.temperature_label.text = '{:.1f}ºC'.format(self.status_last_max_temperature)
+                Logger.info('DroneCopilotApp: temperature: {}ºC'.format(self.status_last_max_temperature))
         # ENABLED UI ELEMENTS AND CONTENTS
         self.root.ids.joystick_left.disabled = not self.drone.status.flying
         self.root.ids.joystick_right.disabled = not self.drone.status.flying
@@ -127,8 +127,7 @@ class DroneCopilotApp(App):
 
     def on_drone_photo(self, frame: np.ndarray):
         Logger.info('DroneCopilotApp: received photo frame')
-        self.root.ids.video.update_texture(frame)
-        time.sleep(2)  # TODO: Save it somewhere (configurable)
+        save_image_to_pictures(Image.fromarray(frame, 'RGB'), 'picture')
 
     def on_stop(self):
         if self.listen_status_stop:
@@ -232,7 +231,7 @@ class DroneCopilotApp(App):
                 self.root.ids.joystick_right.force_pad_y_pos(joystick_right_y)
 
             # Actually apply them to the drone
-            max_speed_m_per_s = 2.0  # TODO: Configurable
+            max_speed_m_per_s = 0.25  # TODO: Configurable
             target_speed_to_update = self.drone.target_speed  # Read previous value for partial updates
             if joystick_right_y:
                 target_speed_to_update.linear_x = joystick_right_y * max_speed_m_per_s
@@ -240,7 +239,7 @@ class DroneCopilotApp(App):
                 target_speed_to_update.linear_y = joystick_right_x * max_speed_m_per_s
             if joystick_left_y:
                 target_speed_to_update.linear_z = -joystick_left_y * max_speed_m_per_s
-            max_speed_angular = 2.0  # TODO: Configurable
+            max_speed_angular = 0.25  # TODO: Configurable
             if joystick_left_x:
                 target_speed_to_update.yaw = joystick_left_x * max_speed_angular
             self.drone.target_speed = target_speed_to_update  # Actually update the target speed
@@ -281,10 +280,8 @@ class DroneCopilotApp(App):
 
     def action_screenshot_app(self):
         # HACK: Screenshot code as default can't customize the file path properly!
-        filename = f'{plyer.storagepath.get_pictures_dir()}/kivy-drone-copilot-screenshot-' \
-                   f'{str(time.time()).replace(".", "-")}.jpg'
         from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
         width, height = self.root_window.size
         data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
-        Image.frombuffer('RGB', (width, height), data).transpose(Image.FLIP_TOP_BOTTOM).save(filename)
-        Logger.debug('DroneCopilotApp: App screenshot saved at <%s>' % filename)
+        img = Image.frombuffer('RGB', (width, height), data).transpose(Image.FLIP_TOP_BOTTOM)
+        save_image_to_pictures(img, 'screenshot')

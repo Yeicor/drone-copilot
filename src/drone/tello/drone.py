@@ -53,8 +53,9 @@ class TelloDrone(Drone):
         self._tello.set_loglevel(LOG_INFO)
         self._tello.set_exposure(0)  # Automatic
         self._tello.set_video_encoder_rate(0)  # Automatic
-        self._tello.set_alt_limit(30)  # 30m
-        self._tello.set_att_limit(15)  # 15deg
+        # self._tello.set_alt_limit(30)  # 30m?
+        # self._tello.set_att_limit(15)  # 15deg?
+        self._tello.fast_mode = False
         # Listen for status updates and other events
         self._tello.subscribe(Tello.EVENT_FLIGHT_DATA, lambda **kwargs: self._on_flight_data(kwargs['data']))
         self._tello.subscribe(Tello.EVENT_LOG_DATA, lambda **kwargs: self._on_log_data(kwargs['data']))
@@ -68,22 +69,30 @@ class TelloDrone(Drone):
         weakref.finalize(self, self.__del__)
 
     def __del__(self):
-        del self.cameras
+        del self._cameras
         self._tello.quit()
 
     def takeoff(self, callback: Callable[[bool], None]):
         # TODO: Check status
         self._tello.takeoff()
+
         # HACK: Wait for takeoff to complete
         # TODO: Check status to see if it's actually taken off and run the callback just as it frees controls
-        Clock.schedule_once(lambda _: callback(True), 2.5)
+        def my_callback(dt):
+            callback(True)
+
+        Clock.schedule_once(my_callback, 5.0)
 
     def land(self, callback: Callable[[bool], None]):
         # TODO: Check status
         self._tello.land()
+
         # HACK: Wait for land to complete
         # TODO: Check status to see if it's actually taken off and run the callback just as it frees controls
-        Clock.schedule_once(lambda _: callback(True), 5.0)
+        def my_callback(dt):
+            callback(True)
+
+        Clock.schedule_once(my_callback, 5.0)
 
     @staticmethod
     def _speed_linear_to_stick(speed: float) -> float:

@@ -1,9 +1,10 @@
+import io
 import time
 from threading import Thread
 from typing import Callable, Optional
 
-import cv2
 import numpy as np
+from PIL import Image
 from kivy import Logger
 from tellopy import Tello
 
@@ -19,6 +20,7 @@ class TelloCamera(Camera):  # TODO: Threadsafe implementation
     ]
     resolutions_photo = [(2592, 1936)]  # 5MP photos!
 
+    # noinspection PyUnresolvedReferences
     def __init__(self, drone: 'TelloDrone', tello: Tello):
         self.drone = drone
         self.tello = tello
@@ -46,7 +48,8 @@ class TelloCamera(Camera):  # TODO: Threadsafe implementation
             Logger.warn('Unexpected photo received with no listeners')
             return
         # Decode the JPEG image to a numpy array
-        frame = cv2.imdecode(np.fromstring(data, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+        # noinspection PyTypeChecker
+        frame = np.asarray(Image.open(io.BytesIO(data), formats=['jpeg']))
         # Notify all listeners
         for listener in self.listeners_photo:
             listener(frame)
