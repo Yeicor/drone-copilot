@@ -163,15 +163,17 @@ class DroneCopilotApp(App):
             joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y))
         if self.drone and self.drone.status.flying:
             speed_m_per_s = 2.0  # TODO: Configurable
+            target_speed_to_update = self.drone.target_speed  # Read previous value for partial updates
             if joystick_right_y:
-                self.drone.target_speed.linear_x = joystick_right_y * speed_m_per_s
+                target_speed_to_update.linear_x = joystick_right_y * speed_m_per_s
             if joystick_right_x:
-                self.drone.target_speed.linear_y = joystick_right_x * speed_m_per_s
+                target_speed_to_update.linear_y = joystick_right_x * speed_m_per_s
             if joystick_left_y:
-                self.drone.target_speed.linear_z = -joystick_left_y * speed_m_per_s
+                target_speed_to_update.linear_z = -joystick_left_y * speed_m_per_s
             speed_angular = 5.0  # TODO: Configurable
             if joystick_left_x:
-                self.drone.target_speed.yaw = joystick_left_x * speed_angular
+                target_speed_to_update.yaw = joystick_left_x * speed_angular
+            self.drone.target_speed = target_speed_to_update  # Actually update the target speed
 
     def action_takeoff_land(self):
         # Logger.debug('DroneCopilotApp: action_takeoff_land')
