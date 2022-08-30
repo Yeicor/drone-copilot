@@ -178,6 +178,8 @@ class DroneCopilotApp(App):
     def action_takeoff_land(self):
         # Logger.debug('DroneCopilotApp: action_takeoff_land')
         if self.drone:
+            # TODO: Enable / disable buttons while taking off / landing
+            # TODO: Disable buttons while not taking off
             if self.drone.status.flying:
                 self.drone.land(lambda: Logger.info('DroneCopilotApp: landed!'))
             else:
