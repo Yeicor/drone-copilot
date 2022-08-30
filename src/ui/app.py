@@ -2,9 +2,9 @@ import time
 from typing import Optional, Callable, List
 
 import numpy as np
+import plyer
 from kivy import platform, Logger
 from kivy.app import App
-from kivy.clock import Clock
 from kivy.config import ConfigParser
 from kivy.core.window import Window, Keyboard
 from kivy.uix.settings import SettingsWithSpinner
@@ -37,7 +37,7 @@ class DroneCopilotApp(App):
         self.drone_cameras: Optional[List[Camera]] = None
         self.drone_camera: Optional[Camera] = None
 
-    # ==================== BUILD boilerplate ====================
+    # ==================== boilerplate ====================
 
     def build(self):
         if platform == 'android':
@@ -51,6 +51,14 @@ class DroneCopilotApp(App):
         for k, v in get_settings_defaults().items():
             config.setdefaults(k, v)
 
+    def register_event_type(self, *args, **kwargs):  # Needed to avoid EventDispatcher warnings
+        # noinspection PyUnresolvedReferences
+        super(DroneCopilotApp, self).register_event_type(*args, **kwargs)
+
+    def dispatch(self, *args, **kwargs):  # Needed to avoid EventDispatcher warnings
+        # noinspection PyUnresolvedReferences
+        super(DroneCopilotApp, self).dispatch(*args, **kwargs)
+
     # ==================== LISTENERS & HANDLERS ====================
 
     def on_start(self):
@@ -62,17 +70,21 @@ class DroneCopilotApp(App):
                 self.root.ids.video.set_frame_text(  # TODO: Something nicer
                     'CONNECTION TO DRONE FAILED!\nRETRY BY RELOADING THE APP')
 
+        self.root.ids.joystick_left.disabled = True
+        self.root.ids.joystick_right.disabled = True
+        self.root.ids.takeoff_land_button.disabled = True
         self.root.ids.video.set_frame_text('Connecting to the drone...')
         drone_connect_auto(self.config, on_connect_result)
 
     def on_drone_connected(self, drone: Drone):
         self.drone = drone
         Logger.info('DroneCopilotApp: connected to drone!')
+        # Update UI
+        self.root.ids.takeoff_land_button.disabled = False
+        self.root.ids.video.set_frame_text('Connecting to the drone\'s video feed...')
         # Listen for status events
         self.listen_status_stop = self.drone.listen_status(lambda status: self.dispatch('on_drone_status', status))
-        Clock.schedule_interval(lambda dt: self.update_takeoff_button(), 1.0)
         # Connect to video camera (if available)
-        self.root.ids.video.set_frame_text('Connecting to the drone\'s video feed...')
         self.drone_cameras = self.drone.cameras()
         if len(self.drone_cameras) > 0:
             self.drone_camera = self.drone_cameras[0]  # TODO: Configurable
@@ -84,24 +96,26 @@ class DroneCopilotApp(App):
         else:
             self.root.ids.video.set_frame_text('No video feed available for this drone, :(')
 
-    def update_takeoff_button(self):
-        # Logger.debug('DroneCopilotApp: update_takeoff_button')
-        if self.drone and self.drone.status.flying:
-            self.root.ids.takeoff_land_button.text = 'Land'
-        else:
-            self.root.ids.takeoff_land_button.text = 'Takeoff'
-
     def on_drone_status(self, drone_status: Status):
         Logger.info('DroneCopilotApp: STATUS: {}'.format(str(drone_status)))
+        # BATTERY
         if self.status_last_battery != drone_status.battery:
             self.status_last_battery = drone_status.battery
             self.root.ids.battery_label.text = '{}%'.format(int(self.status_last_battery * 100))
             Logger.info('DroneCopilotApp: battery: {}%'.format(int(self.status_last_battery * 100)))
+        # TEMPERATURE
         cur_max_temp_c = max(drone_status.temperatures.values()) - 273.15  # Kelvin to Celsius. TODO: Configure units
         if self.status_last_max_temperature != cur_max_temp_c:
             self.status_last_max_temperature = cur_max_temp_c
             self.root.ids.temperature_label.text = '{:.1f}ºC'.format(self.status_last_max_temperature)
             Logger.info('DroneCopilotApp: temperature: {}ºC'.format(self.status_last_max_temperature))
+        # ENABLED UI ELEMENTS AND CONTENTS
+        self.root.ids.joystick_left.disabled = not self.drone.status.flying
+        self.root.ids.joystick_right.disabled = not self.drone.status.flying
+        if self.drone.status.flying:
+            self.root.ids.takeoff_land_button.text = 'Land'  # TODO: Icons?
+        else:
+            self.root.ids.takeoff_land_button.text = 'Takeoff'
 
     def on_drone_video_frame(self, frame: np.ndarray):
         self.root.ids.video.update_texture(frame)
@@ -121,6 +135,7 @@ class DroneCopilotApp(App):
         Logger.info('DroneCopilotApp: destroyed')
 
     # ==================== KEYBOARD / GAMEPAD events ====================
+    # noinspection PyUnusedLocal
     def on_keyboard(self, instance, key, scancode, codepoint, modifiers):  # TODO: on_gamepad!
         # Manage joysticks to control drone movements
         joystick_left_x = 0
@@ -143,7 +158,8 @@ class DroneCopilotApp(App):
             joystick_right_x = -1
         elif key == Keyboard.keycodes['right']:
             joystick_right_x = 1
-        self.action_joysticks(joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y)
+        if joystick_left_x != 0 or joystick_left_y != 0 or joystick_right_x != 0 or joystick_right_y != 0:
+            self.action_joysticks(joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y)
         # Manage takeoff/land shortcut
         if key == Keyboard.keycodes['spacebar']:
             self.action_takeoff_land()
@@ -154,7 +170,14 @@ class DroneCopilotApp(App):
             self.action_toggle_settings()
         # Undocumented extras
         if key == Keyboard.keycodes['f11']:
-            self.root_window.screenshot()
+            # HACK: Screenshot code as default can't customize the file path properly!
+            filename = f'{plyer.storagepath.get_pictures_dir()}/kivy-drone-copilot-screenshot-{time.time()}.png'
+            from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+            width, height = self.root_window.size
+            data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
+            # noinspection PyProtectedMember
+            self.root_window._win.save_bytes_in_png(filename, data, width, height)
+            Logger.debug('Window: Screenshot saved at <%s>' % filename)
 
     # ==================== ACTIONS triggered by events ====================
     def action_joysticks(self, joystick_left_x: Optional[float], joystick_left_y: Optional[float],
@@ -170,20 +193,28 @@ class DroneCopilotApp(App):
                 target_speed_to_update.linear_y = joystick_right_x * speed_m_per_s
             if joystick_left_y:
                 target_speed_to_update.linear_z = -joystick_left_y * speed_m_per_s
-            speed_angular = 5.0  # TODO: Configurable
+            speed_angular = 2.0  # TODO: Configurable
             if joystick_left_x:
                 target_speed_to_update.yaw = joystick_left_x * speed_angular
             self.drone.target_speed = target_speed_to_update  # Actually update the target speed
 
     def action_takeoff_land(self):
+        def action_callback(taking_off: bool):
+            Logger.info('DroneCopilotApp: action_takeoff_land callback: taking_off={}'.format(taking_off))
+            self.root.ids.takeoff_land_button.disabled = False  # Can take off/land again
+            if not taking_off:  # Stop control after landing
+                self.root.ids.joystick_left.disabled = True
+                self.root.ids.joystick_right.disabled = True
+
         # Logger.debug('DroneCopilotApp: action_takeoff_land')
         if self.drone:
-            # TODO: Enable / disable buttons while taking off / landing
-            # TODO: Disable buttons while not taking off
-            if self.drone.status.flying:
-                self.drone.land(lambda: Logger.info('DroneCopilotApp: landed!'))
-            else:
-                self.drone.takeoff(lambda: Logger.info('DroneCopilotApp: took off!'))
+            self.root.ids.takeoff_land_button.disabled = True
+            if self.drone.status.flying:  # Land
+                self.drone.land(lambda: action_callback(False))
+            else:  # Take off
+                self.root.ids.joystick_left.disabled = False  # Allow control while taking off
+                self.root.ids.joystick_right.disabled = False
+                self.drone.takeoff(lambda: action_callback(True))
         else:
             Logger.error('DroneCopilotApp: takeoff/land: no drone connected')
 

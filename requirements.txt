@@ -41,6 +41,7 @@ packaging==21.3
 pep517==0.6.0
 pexpect==4.8.0
 platformdirs==2.5.2
+plyer==2.0.0
 protobuf==3.19.4
 ptyprocess==0.7.0
 pyasn1==0.4.8

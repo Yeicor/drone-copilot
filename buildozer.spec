@@ -37,7 +37,7 @@ version.filename = %(source.dir)s/main.py
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,camera4kivy,gestures4kivy,numpy,tflite-runtime,opencv,ffpyplayer,tellopy@git+https://github.com/hanyazou/TelloPy@develop-0.7.0,git+https://github.com/Yeicor/kivy-joystick@master
+requirements = python3,kivy,camera4kivy,gestures4kivy,numpy,tflite-runtime,opencv,ffpyplayer,tellopy@git+https://github.com/hanyazou/TelloPy@develop-0.7.0,git+https://github.com/Yeicor/kivy-joystick@master,plyer
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -93,7 +93,8 @@ fullscreen = 0
 #icon.adaptive_background.filename = %(source.dir)s/data/icon_bg.png
 
 # (list) Permissions
-android.permissions = INTERNET,CAMERA
+# internet to communicate with the drone, storage to save pictures
+android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host

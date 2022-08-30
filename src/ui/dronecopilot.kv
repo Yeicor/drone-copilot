@@ -1,7 +1,7 @@
 #: kivy 2.1.0
 #: import Settings kivy.uix.settings
 #: import MyVideo ui.video.video
-#: import Joystick kivy-joystick.Joystick
+#: import MyJoystick ui.util.joystick
 #: import ShadowLabel ui.util.shadow
 #: import Clock kivy.clock.Clock
 
@@ -23,11 +23,9 @@ FloatLayout:
         RelativeLayout:
             size_hint: (None, None)
             size: (.4 * root.height * float(app.config.get('ui', 'scaling')), .4 * root.height * float(app.config.get('ui', 'scaling')))
-            Joystick:
+            MyJoystick:
                 id: joystick_left
-                on_touch_down: Clock.schedule_once(lambda _: app.action_joysticks(self.pad_x, self.pad_y, None, None), 0) if self.collide_point(args[1].x, args[1].y) else None
-                on_touch_move: Clock.schedule_once(lambda _: app.action_joysticks(self.pad_x, self.pad_y, None, None), 0) if self.collide_point(args[1].x, args[1].y) else None
-                on_touch_up: Clock.schedule_once(lambda _: app.action_joysticks(self.pad_x, self.pad_y, None, None), 0) if self.collide_point(args[1].x, args[1].y) else None
+                on_pad: Clock.schedule_once(lambda _: app.action_joysticks(self.pad_x, self.pad_y, None, None), 0)
             Image:
                 id: keyboard_w
                 source: 'assets/keyboard/W_Key_Dark.png'
@@ -80,11 +78,9 @@ FloatLayout:
         RelativeLayout:
             size_hint: (None, None)
             size: (.4 * root.height * float(app.config.get('ui', 'scaling')), .4 * root.height * float(app.config.get('ui', 'scaling')))
-            Joystick:
+            MyJoystick:
                 id: joystick_right
-                on_touch_down: Clock.schedule_once(lambda _: app.action_joysticks(None, None, self.pad_x, self.pad_y), 0) if self.collide_point(args[1].x, args[1].y) else None
-                on_touch_move: Clock.schedule_once(lambda _: app.action_joysticks(None, None, self.pad_x, self.pad_y), 0) if self.collide_point(args[1].x, args[1].y) else None
-                on_touch_up: Clock.schedule_once(lambda _: app.action_joysticks(None, None, self.pad_x, self.pad_y), 0) if self.collide_point(args[1].x, args[1].y) else None
+                on_pad: Clock.schedule_once(lambda _: app.action_joysticks(self.pad_x, self.pad_y, None, None), 0)
             Image:
                 id: keyboard_up
                 source: 'assets/keyboard/Arrow_Up_Key_Dark.png'

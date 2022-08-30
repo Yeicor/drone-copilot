@@ -38,6 +38,8 @@ class TelloStatus(Status):
         if self.flight_data is None:
             return super().flying
         return self.flight_data.fly_mode == 6  # Detects flying without motors (fall/carrying in hand)
+        # Note that drone modifications like adding landing gear may make the drone think it is always flying.
+        # Mitigation: take off from hand / small rock under the drone's height sensor.
 
     @property
     def height(self) -> float:
