@@ -114,6 +114,10 @@ class DroneCopilotApp(App):
                 self.status_last_max_temperature = cur_max_temp_c
                 self.root.ids.temperature_label.text = '{:.1f}ºC'.format(self.status_last_max_temperature)
                 Logger.info('DroneCopilotApp: temperature: {}ºC'.format(self.status_last_max_temperature))
+        # SIGNAL
+        self.root.ids.signal_label = str(int(drone_status.signal_strength * 100)) + '%'
+        # HEIGHT
+        self.root.ids.height_label = '{:.2f}m'.format(drone_status.height)
         # ENABLED UI ELEMENTS AND CONTENTS
         self.root.ids.joystick_left.disabled = not self.drone.status.flying
         self.root.ids.joystick_right.disabled = not self.drone.status.flying
