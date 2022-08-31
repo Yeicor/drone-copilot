@@ -1,10 +1,13 @@
 import os
 import tarfile
 
-import plyer
 from kivy import Logger
 from kivy3 import Scene
 from kivy3.loaders import OBJMTLLoader
+from kivy3.loaders import objloader
+
+# HACK: load empty.png (if needed) from the current directory instead of the library which does not contain it
+objloader.folder = os.path.dirname(os.path.abspath(__file__))
 
 
 def load_scene() -> Scene:
@@ -14,10 +17,10 @@ def load_scene() -> Scene:
     is licensed under Creative Commons Attribution (https://creativecommons.org/licenses/by/4.0/).
     """
     # Extract the obj file
-    extract_to = os.path.join(plyer.storagepath.get_application_dir(), '.cache', 'models')
+    extract_to = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../..', '.cache', 'models')
     if not os.path.exists(extract_to):
         os.makedirs(extract_to)
-        with tarfile.open('scene.tar.xz', 'r|*') as tar:
+        with tarfile.open(os.path.join(os.path.dirname(__file__), 'scene.tar.gz'), 'r|*') as tar:
             tar.extractall(path=extract_to)
         Logger.info('renderer3d: Extracted scene to %s', extract_to)
     else:

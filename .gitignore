@@ -1,5 +1,6 @@
 # App configuration
 *.ini
+/.cache
 
 # Environment
 /venv/

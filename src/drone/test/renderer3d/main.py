@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from kivy.app import App
 from kivy.clock import Clock
@@ -6,16 +8,17 @@ from kivy.uix.floatlayout import FloatLayout
 from drone.test.renderer3d.renderer import MySceneRenderer
 
 
-class TestApp(App):
+class Renderer3DTestApp(App):
 
     def build(self):
         root_widget = FloatLayout()
         renderer = MySceneRenderer()
         root_widget.add_widget(renderer)
-        renderer.do_render()
-        Clock.schedule_once(lambda _: print(np.count_nonzero(renderer.get_last_render_array())), 2.5)
+        renderer.queue_render(lambda: Clock.schedule_once(lambda _: print(
+            'Non-zero pixels in the rendered frame:', np.count_nonzero(renderer.last_frame())), -1))
         return root_widget
 
 
 if __name__ == '__main__':
-    TestApp().run()
+    os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../..'))
+    Renderer3DTestApp().run()
