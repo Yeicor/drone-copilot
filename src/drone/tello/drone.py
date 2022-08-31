@@ -78,10 +78,7 @@ class TelloDrone(Drone):
 
         # HACK: Wait for takeoff to complete
         # TODO: Check status to see if it's actually taken off and run the callback just as it frees controls
-        def my_callback(dt):
-            callback(True)
-
-        Clock.schedule_once(my_callback, 5.0)
+        Clock.schedule_once(lambda dt: callback(True), 2.5)
 
     def land(self, callback: Callable[[bool], None]):
         # TODO: Check status
@@ -89,10 +86,7 @@ class TelloDrone(Drone):
 
         # HACK: Wait for land to complete
         # TODO: Check status to see if it's actually taken off and run the callback just as it frees controls
-        def my_callback(dt):
-            callback(True)
-
-        Clock.schedule_once(my_callback, 5.0)
+        Clock.schedule_once(lambda dt: callback(True), 5.0)
 
     @staticmethod
     def _speed_linear_to_stick(speed: float) -> float:

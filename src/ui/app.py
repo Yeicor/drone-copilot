@@ -245,20 +245,18 @@ class DroneCopilotApp(App):
             self.drone.target_speed = target_speed_to_update  # Actually update the target speed
 
     def action_takeoff_land(self):
-        def action_callback(taking_off: bool):
-            Logger.info('DroneCopilotApp: action_takeoff_land callback: taking_off={}'.format(taking_off))
-            if not taking_off:  # Stop control after landing
-                self.root.ids.joystick_left.disabled = True
-                self.root.ids.joystick_right.disabled = True
+        def action_callback(taking_off: bool, success: bool):
+            Logger.info('DroneCopilotApp: action_takeoff_land callback: taking_off={}, success={}'.format(
+                taking_off, success))
 
         # Logger.debug('DroneCopilotApp: action_takeoff_land')
         if self.drone:
             if self.drone.status.flying:  # Land
-                self.drone.land(lambda: action_callback(False))
+                self.drone.land(lambda success: action_callback(False, success))
             else:  # Take off
                 self.root.ids.joystick_left.disabled = False  # Allow control while taking off
                 self.root.ids.joystick_right.disabled = False
-                self.drone.takeoff(lambda: action_callback(True))
+                self.drone.takeoff(lambda success: action_callback(True, success))
         else:
             Logger.error('DroneCopilotApp: takeoff/land: no drone connected')
 
