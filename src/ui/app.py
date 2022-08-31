@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 from kivy import platform, Logger
 from kivy.app import App
+from kivy.clock import mainthread
 from kivy.config import ConfigParser
 from kivy.core.window import Window, Keyboard
 from kivy.uix.settings import SettingsWithSpinner
@@ -32,7 +33,6 @@ class DroneCopilotApp(App):
         self.drone: Optional[Drone] = None
         self.listen_status_stop: Optional[Callable[[], None]] = None
         self.status_last_battery: float = -1.0
-        self.status_last_max_temperature: float = -1.0
         self.listen_video_stop: Optional[Callable[[], None]] = None
         self.drone_cameras: Optional[List[Camera]] = None
         self.drone_camera: Optional[Camera] = None
@@ -67,6 +67,7 @@ class DroneCopilotApp(App):
     # ==================== LISTENERS & HANDLERS ====================
     def on_start(self):
         # Start connecting to the drone
+        @mainthread
         def on_connect_result(drone: Drone):
             if drone:
                 self.dispatch('on_drone_connected', drone)
@@ -109,11 +110,8 @@ class DroneCopilotApp(App):
             Logger.info('DroneCopilotApp: battery: {}%'.format(int(self.status_last_battery * 100)))
         # TEMPERATURE
         if len(drone_status.temperatures) > 0:
-            cur_max_temp_c = max(drone_status.temperatures.values()) - 273.15  # Kelvin to Celsius. TODO: Configure
-            if self.status_last_max_temperature != cur_max_temp_c:
-                self.status_last_max_temperature = cur_max_temp_c
-                self.root.ids.temperature_label.text = '{:.1f}ºC'.format(self.status_last_max_temperature)
-                Logger.info('DroneCopilotApp: temperature: {}ºC'.format(self.status_last_max_temperature))
+            cur_max_temp_c = max(drone_status.temperatures.values()) - 273.15  # Kelvin to Celsius.
+            self.root.ids.temperature_label.text = '{:.1f}ºC'.format(cur_max_temp_c)  # TODO: Configure display units
         # SIGNAL
         self.root.ids.signal_label = str(int(drone_status.signal_strength * 100)) + '%'
         # HEIGHT
@@ -235,7 +233,7 @@ class DroneCopilotApp(App):
                 self.root.ids.joystick_right.force_pad_y_pos(joystick_right_y)
 
             # Actually apply them to the drone
-            max_speed_m_per_s = 0.25  # TODO: Configurable
+            max_speed_m_per_s = 0.4  # TODO: Configurable
             target_speed_to_update = self.drone.target_speed  # Read previous value for partial updates
             if joystick_right_y:
                 target_speed_to_update.linear_x = joystick_right_y * max_speed_m_per_s
@@ -243,7 +241,7 @@ class DroneCopilotApp(App):
                 target_speed_to_update.linear_y = joystick_right_x * max_speed_m_per_s
             if joystick_left_y:
                 target_speed_to_update.linear_z = -joystick_left_y * max_speed_m_per_s
-            max_speed_angular = 0.25  # TODO: Configurable
+            max_speed_angular = 0.5  # TODO: Configurable
             if joystick_left_x:
                 target_speed_to_update.yaw = joystick_left_x * max_speed_angular
             self.drone.target_speed = target_speed_to_update  # Actually update the target speed
@@ -258,7 +256,7 @@ class DroneCopilotApp(App):
             if self.drone.status.flying:  # Land
                 self.drone.land(lambda success: action_callback(False, success))
             else:  # Take off
-                self.root.ids.joystick_left.disabled = False  # Allow control while taking off
+                self.root.ids.joystick_left.disabled = False  # Quickly (also automatic) allow control while taking off
                 self.root.ids.joystick_right.disabled = False
                 self.drone.takeoff(lambda success: action_callback(True, success))
         else:
