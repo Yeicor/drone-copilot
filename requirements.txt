@@ -30,6 +30,7 @@ Keras-Preprocessing==1.1.2
 Kivy==2.1.0
 Kivy-Garden==0.1.5
 kivy-joystick @ git+https://github.com/Yeicor/kivy-joystick@42fdadc861d5c5cfd1f4c650538436f39a2deeba
+kivy3 @ git+https://github.com/KeyWeeUsr/kivy3@2b70e5021c2255962dabe124a66aede0adcc102f
 libclang==14.0.6
 Markdown==3.4.1
 MarkupSafe==2.1.1
