@@ -20,6 +20,8 @@ from drone.tello.status import TelloStatus
 
 
 class TelloDrone(Drone):
+    """The driver implementation for controlling a DJI Tello drone.
+    """
 
     @staticmethod
     def connect(url: str, timeout_secs: float, extra: any, callback: Callable[[Optional[TelloDrone]], None]):

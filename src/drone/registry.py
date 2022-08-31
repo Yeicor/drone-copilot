@@ -6,13 +6,14 @@ from kivy.config import ConfigParser
 
 from drone.api.drone import Drone
 from drone.tello.drone import TelloDrone
+from drone.test.drone import TestDrone
 from ui.settings.register import register_settings_section_meta
 from ui.settings.settings import SettingMetaOptions, SettingMetaString, SettingMetaNumeric
 
 # TODO: Add a test drone driver that explores a safe virtual environment
 
 # Provide the drone connection initializer for each supported drone
-_drone_classes: List[Type[Drone]] = [TelloDrone]
+_drone_classes: List[Type[Drone]] = [TelloDrone, TestDrone]
 
 # Also register the settings to configure the connection to a drone
 register_settings_section_meta('Connection', 0, [
