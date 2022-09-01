@@ -34,4 +34,5 @@ def load_scene() -> Scene:
     # loaded_obj.pos.y = -0.3  # move the ground down a bit
     # loaded_obj.pos.z = -10  # move the ground down a bit
     scene.add(loaded_obj)
+    # TODO: people and cars moving around the scene to test advanced autopilot algorithms
     return scene

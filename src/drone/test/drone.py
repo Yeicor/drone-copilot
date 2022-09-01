@@ -4,10 +4,15 @@ import threading
 from time import sleep
 from typing import Callable, Optional, List
 
+import numpy as np
+from kivy.clock import Clock
+
 from drone.api.camera import Camera
 from drone.api.drone import Drone
 from drone.api.linearangular import LinearAngular
 from drone.api.status import Status
+from drone.test.camera import TestCamera
+from drone.test.status import TestStatus
 
 
 class TestDrone(Drone):
@@ -25,30 +30,52 @@ class TestDrone(Drone):
 
     def __init__(self):
         super().__init__()
+        self._camera = TestCamera()
+        self._camera.setup()
+        self._status = TestStatus(scene_geoms=self._camera.scene_geoms())
+        self._status.start_updates()
+        self._status_listeners: List[Callable[[Status], None]] = []
+        self._status.bind(on_update=lambda _: [listener(self._status) for listener in self._status_listeners])
 
     def __del__(self):
         pass
 
     def takeoff(self, callback: Callable[[bool], None]):
-        pass
+        # Slowly rise, wait 2 seconds, stop and run the callback
+        self.target_speed = LinearAngular(linear=np.array([0, 0, -0.5]))
+
+        def callback_wrapper(_dt: float):
+            self.target_speed = LinearAngular(linear=np.array([0, 0, 0]))
+            callback(True)
+
+        Clock.schedule_once(callback_wrapper, 2.0)
 
     def land(self, callback: Callable[[bool], None]):
-        pass
+        # Slowly fall down until we reach the ground, stop and run the callback
+        def protocol():
+            while self._status.height > 0.1:
+                self.target_speed = LinearAngular(linear=np.array([0, 0, 0.5]))
+                sleep(0.1)
+            self.target_speed = LinearAngular(linear=np.array([0, 0, 0]))
+            callback(True)
+
+        threading.Thread(target=protocol, daemon=True).start()
 
     @property
     def target_speed(self) -> LinearAngular:
-        return super(TestDrone, self).target_speed
+        return self._status.velocity
 
     @target_speed.setter
     def target_speed(self, speed: LinearAngular):
-        pass
+        self._status._velocity = speed
 
     @property
     def status(self) -> Status:
-        return super(TestDrone, self).status
+        return self._status
 
     def listen_status(self, callback: Callable[[Status], None]) -> Callable[[], None]:
-        return super(TestDrone, self).listen_status(callback)
+        self._status_listeners.append(callback)
+        return lambda: self._status_listeners.remove(callback)
 
     def cameras(self) -> List[Camera]:
-        return []
+        return [self._camera]
