@@ -13,7 +13,7 @@ from ui.settings.settings import SettingMetaOptions, SettingMetaString, SettingM
 # TODO: Add a test drone driver that explores a safe virtual environment
 
 # Provide the drone connection initializer for each supported drone
-_drone_classes: List[Type[Drone]] = [TelloDrone, TestDrone]
+_drone_classes: List[Type[Drone]] = [TestDrone, TelloDrone]
 
 # Also register the settings to configure the connection to a drone
 register_settings_section_meta('Connection', 0, [
