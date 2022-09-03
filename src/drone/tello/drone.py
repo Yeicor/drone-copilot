@@ -111,9 +111,9 @@ class TelloDrone(Drone):
     def target_speed(self) -> LinearAngular:
         res = LinearAngular()
         # Convert from joystick format
-        res.linear_x = self._stick_to_speed_linear(self._tello.right_y)
-        res.linear_y = self._stick_to_speed_linear(self._tello.right_y)
-        res.linear_z = self._stick_to_speed_linear(self._tello.right_y)
+        res.linear_local_x = self._stick_to_speed_linear(self._tello.right_y)
+        res.linear_local_y = self._stick_to_speed_linear(self._tello.right_y)
+        res.linear_local_z = self._stick_to_speed_linear(self._tello.right_y)
         res.yaw = self._stick_to_speed_angular(self._tello.right_y)
         return res
 
@@ -121,9 +121,9 @@ class TelloDrone(Drone):
     def target_speed(self, speed: LinearAngular):
         # Convert data to joystick format
         self._tello.left_x = self._speed_angular_to_stick(speed.yaw)  # TODO: Different function for angles
-        self._tello.left_y = self._speed_linear_to_stick(-speed.linear_z)
-        self._tello.right_x = self._speed_linear_to_stick(speed.linear_y)
-        self._tello.right_y = self._speed_linear_to_stick(speed.linear_x)
+        self._tello.left_y = self._speed_linear_to_stick(-speed.linear_local_z)
+        self._tello.right_x = self._speed_linear_to_stick(speed.linear_local_y)
+        self._tello.right_y = self._speed_linear_to_stick(speed.linear_local_x)
         # Data will be sent automatically on the next tick (internal Tello thread)
 
     def _on_flight_data(self, data: FlightData):

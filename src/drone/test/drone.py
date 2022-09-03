@@ -5,6 +5,7 @@ from time import sleep
 from typing import Callable, Optional, List
 
 import numpy as np
+from kivy import Logger
 from kivy.clock import Clock
 
 from drone.api.camera import Camera
@@ -34,7 +35,7 @@ class TestDrone(Drone):
         self._camera.setup()
         self._status = TestStatus(camera=self._camera)
         self._status.start_updates()
-        self._status_listeners: List[Callable[[Status], None]] = []
+        self._status_listeners: List[Callable[[Status], None]] = [lambda s: self._camera.on_status_update(s)]
         self._status.bind(on_update=lambda _: [listener(self._status) for listener in self._status_listeners])
 
     def __del__(self):
@@ -42,24 +43,34 @@ class TestDrone(Drone):
 
     def takeoff(self, callback: Callable[[bool], None]):
         # Slowly rise, wait 2 seconds, stop and run the callback
-        self.target_speed = LinearAngular(linear=np.array([0, 0, -0.5]))
+        self.target_speed = LinearAngular(linear_local=np.array([0, 0, -0.5]))
+        Logger.info("TestDrone: Taking off")
 
         def callback_wrapper(_dt: float):
-            self.target_speed = LinearAngular(linear=np.array([0, 0, 0]))
+            self.target_speed = LinearAngular(linear_local=np.array([0, 0, 0]))
+            Logger.info("TestDrone: Takeoff complete")
             callback(True)
 
         Clock.schedule_once(callback_wrapper, 2.0)
 
     def land(self, callback: Callable[[bool], None]):
         # Slowly fall down until we reach the ground, stop and run the callback
-        def protocol():
-            while self._status.height > 0.1:
-                self.target_speed = LinearAngular(linear=np.array([0, 0, 0.5]))
-                sleep(0.1)
-            self.target_speed = LinearAngular(linear=np.array([0, 0, 0]))
-            callback(True)
+        ev = []
 
-        threading.Thread(target=protocol, daemon=True).start()
+        def protocol(_dt: float):
+            if self._status.flying:  # Force the drone to land by always setting the speed
+                self.target_speed = LinearAngular(linear_local=np.array([0, 0, 0.5]), angular=np.array([0, 0, 0]))
+            else:
+                self.target_speed = LinearAngular(linear_local=np.array([0, 0, 0]))
+                callback(True)
+                ev[0].cancel()
+
+        if self._status.height > 0.0:
+            Logger.info("TestDrone: Landing")
+            ev.append(Clock.schedule_interval(protocol, 0.1))
+        else:
+            Logger.warn("TestDrone: Cannot land, you have no ground below!")
+            callback(False)
 
     @property
     def target_speed(self) -> LinearAngular:

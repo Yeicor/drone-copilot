@@ -5,6 +5,7 @@ import os.path
 from typing import Callable, Optional
 
 import numpy as np
+from kivy import Logger
 from kivy.clock import mainthread
 from kivy3 import Renderer, PerspectiveCamera
 
@@ -37,12 +38,15 @@ class MySceneRenderer(Renderer):
 
         :param callback: a callback to be called after the render is done, useful for reading the rendered array.
         """
-        self.queue_render_callback = callback
-        self.canvas.ask_update()  # Not forcing the render! Only rescaling does it.
-        if self.pos[0] % 2 == 0:  # force a rerender, the ugly way ;)
-            self.pos[0] += 1
+        if self.queue_render_callback is None:  # Don't overload rendering if the device is not fast enough
+            self.queue_render_callback = callback
+            self.canvas.ask_update()  # Not forcing the render! Only rescaling does it.
+            if self.pos[0] % 2 == 0:  # force a rerender, the ugly way ;)
+                self.pos[0] += 1
+            else:
+                self.pos[0] -= 1
         else:
-            self.pos[0] -= 1
+            Logger.warn('Renderer: render already queued, skipping to avoid freezes')
 
     def _reset_gl_context(self, *args):
         """Called at the end of each render
@@ -56,11 +60,10 @@ class MySceneRenderer(Renderer):
         """Reads the last rendered array. This may be a bit slow (because we are reading an OpenGL FBO to the CPU).
         :return: np.ndarray of RGB values (shape: (width, height, 3))
         """
-        with self.fbo:
-            from kivy.graphics.opengl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
-            width, height = self.fbo.size
-            data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
-            # FIXME: non-square resolutions are broken!
-            rgb_frame: np.ndarray = np.frombuffer(data, dtype=np.uint8).reshape((width, height, 3))
-            rgb_frame = np.flip(rgb_frame, axis=0)  # flip the frame vertically
-            return rgb_frame
+        pixels = self.fbo.texture.pixels
+        width, height = self.size
+        # FIXME: non-square resolutions are broken!
+        rgb_frame: np.ndarray = np.frombuffer(pixels, dtype=np.uint8).reshape((width, height, 4))
+        rgb_frame = rgb_frame[:, :, :3]  # RGBA -> RGB
+        rgb_frame = np.flip(rgb_frame, axis=0)  # flip the frame vertically
+        return rgb_frame

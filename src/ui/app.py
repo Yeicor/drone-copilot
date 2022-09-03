@@ -233,16 +233,16 @@ class DroneCopilotApp(App):
                 self.root.ids.joystick_right.force_pad_y_pos(joystick_right_y)
 
             # Actually apply them to the drone
-            max_speed_m_per_s = 0.4  # TODO: Configurable
-            target_speed_to_update = self.drone.target_speed  # Read previous value for partial updates
-            if joystick_right_y:
-                target_speed_to_update.linear_x = joystick_right_y * max_speed_m_per_s
-            if joystick_right_x:
-                target_speed_to_update.linear_y = joystick_right_x * max_speed_m_per_s
-            if joystick_left_y:
-                target_speed_to_update.linear_z = -joystick_left_y * max_speed_m_per_s
+            max_speed_m_per_s = 1.5  # TODO: Configurable
+            target_speed_to_update = self.drone.target_speed
+            if joystick_right_y is not None:
+                target_speed_to_update.linear_local_x = joystick_right_y * max_speed_m_per_s
+            if joystick_right_x is not None:
+                target_speed_to_update.linear_local_y = joystick_right_x * max_speed_m_per_s
+            if joystick_left_y is not None:
+                target_speed_to_update.linear_local_z = -joystick_left_y * max_speed_m_per_s
             max_speed_angular = 0.5  # TODO: Configurable
-            if joystick_left_x:
+            if joystick_left_x is not None:
                 target_speed_to_update.yaw = joystick_left_x * max_speed_angular
             self.drone.target_speed = target_speed_to_update  # Actually update the target speed
 

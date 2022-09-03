@@ -54,9 +54,9 @@ class TelloStatus(Status):
         if self.log_data is None:
             return super().position_attitude
         res = LinearAngular()
-        res.linear_x = self.log_data.mvo.pos_x  # TODO: Check axes!
-        res.linear_y = self.log_data.mvo.pos_y  # TODO: Check axes!
-        res.linear_z = self.log_data.mvo.pos_z  # TODO: Check axes!
+        res.linear_local_x = self.log_data.mvo.pos_x  # TODO: Check axes!
+        res.linear_local_y = self.log_data.mvo.pos_y  # TODO: Check axes!
+        res.linear_local_z = self.log_data.mvo.pos_z  # TODO: Check axes!
         res.roll, res.pitch, res.yaw = quaternion_to_euler(  # TODO: Check axes!
             self.log_data.imu.q0, self.log_data.imu.q1, self.log_data.imu.q2, self.log_data.imu.q3)
         return res
@@ -66,9 +66,9 @@ class TelloStatus(Status):
         if self.log_data is None:
             return super().velocity
         res = LinearAngular()
-        res.linear_x = self.log_data.mvo.vel_x  # TODO: Check axes!
-        res.linear_y = self.log_data.mvo.vel_y  # TODO: Check axes!
-        res.linear_z = self.log_data.mvo.vel_z  # TODO: Check axes!
+        res.linear_local_x = self.log_data.mvo.vel_x  # TODO: Check axes!
+        res.linear_local_y = self.log_data.mvo.vel_y  # TODO: Check axes!
+        res.linear_local_z = self.log_data.mvo.vel_z  # TODO: Check axes!
         res.roll = self.log_data.imu.gyro_x  # TODO: Check axes!
         res.pitch = self.log_data.imu.gyro_y  # TODO: Check axes!
         res.yaw = self.log_data.imu.gyro_z  # TODO: Check axes!
@@ -79,9 +79,9 @@ class TelloStatus(Status):
         if self.log_data is None:
             return super().acceleration
         res = LinearAngular()
-        res.linear_x = self.log_data.imu.acc_x  # TODO: Check axes!
-        res.linear_y = self.log_data.imu.acc_y  # TODO: Check axes!
-        res.linear_z = self.log_data.imu.acc_z  # TODO: Check axes!
+        res.linear_local_x = self.log_data.imu.acc_x  # TODO: Check axes!
+        res.linear_local_y = self.log_data.imu.acc_y  # TODO: Check axes!
+        res.linear_local_z = self.log_data.imu.acc_z  # TODO: Check axes!
         # No angular acceleration available
         return res
 

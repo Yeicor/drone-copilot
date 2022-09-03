@@ -1,10 +1,11 @@
 import sys
+from typing import Tuple
 
 import numpy as np
 from kivy3 import Scene, Object3D, Mesh, Face3, Geometry
 
 
-def raycast_scene(ray_near: np.ndarray, ray_dir: np.ndarray, scene: Scene) -> float:
+def raycast_scene(ray_origin: np.ndarray, ray_dir: np.ndarray, scene: Scene) -> float:
     """A very slow raycasting implementation. TODO: Use an optimized implementation
 
     Remember that this uses the OpenGL coordinate system.
@@ -19,19 +20,21 @@ def raycast_scene(ray_near: np.ndarray, ray_dir: np.ndarray, scene: Scene) -> fl
             geom = obj.geometry
             for face in geom.faces:
                 if isinstance(face, Face3):
-                    dist_tmp = ray_triangle_intersection(ray_near, ray_dir, (np.array(geom.vertices[face.a]),
-                                                                             np.array(geom.vertices[face.b]),
-                                                                             np.array(geom.vertices[face.c])))
-                    if dist_tmp < dist:
+                    dist_tmp = ray_triangle_intersection(ray_origin, ray_dir, (np.array(geom.vertices[face.a]),
+                                                                               np.array(geom.vertices[face.b]),
+                                                                               np.array(geom.vertices[face.c])))
+                    # Logger.debug('Raycast: colliding against %s, distance: %s', dist_tmp)
+                    if 0.0 <= dist_tmp < dist:
                         dist = dist_tmp
     if dist == sys.float_info.max:
         dist = -1.0  # No collision
     return dist
 
 
-def ray_triangle_intersection(ray_near, ray_dir, v123) -> float:
+def ray_triangle_intersection(ray_origin: np.ndarray, ray_dir: np.ndarray,
+                              v123: Tuple[np.ndarray, np.ndarray, np.ndarray]) -> float:
     """Möller–Trumbore intersection algorithm in pure python
-    Based on http://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+    Based on https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
     """
     v1, v2, v3 = v123
     eps = 0.000001
@@ -42,7 +45,7 @@ def ray_triangle_intersection(ray_near, ray_dir, v123) -> float:
     if abs(det) < eps:
         return -1.0
     inv_det = 1. / det
-    tvec = ray_near - v1
+    tvec = ray_origin - v1
     u = tvec.dot(pvec) * inv_det
     if u < 0. or u > 1.:
         return -1.0
