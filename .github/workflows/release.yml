@@ -109,7 +109,8 @@ jobs:
               sed -E -i "s/tensorflow-gpu/tensorflow-macos/" requirements.txt
           # Windows x86_64
           - os: windows-latest
-            deps: ""
+            deps: |
+              sed -E -i "s/sh==.*//" requirements.txt
     steps:
       - name: Checkout
         uses: actions/checkout@v3
