@@ -5,7 +5,6 @@ import os.path
 from typing import Callable, Optional
 
 import numpy as np
-from kivy import Logger
 from kivy.clock import mainthread
 from kivy3 import Renderer, PerspectiveCamera
 
@@ -40,8 +39,10 @@ class MySceneRenderer(Renderer):
         """
         self.queue_render_callback = callback
         self.canvas.ask_update()  # Not forcing the render! Only rescaling does it.
-        self.size[0] += 1  # force a rerender, the ugly way ;)
-        self.size[0] -= 1
+        if self.pos[0] % 2 == 0:  # force a rerender, the ugly way ;)
+            self.pos[0] += 1
+        else:
+            self.pos[0] -= 1
 
     def _reset_gl_context(self, *args):
         """Called at the end of each render

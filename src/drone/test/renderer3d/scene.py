@@ -12,9 +12,10 @@ objloader.folder = os.path.dirname(os.path.abspath(__file__))
 
 def load_scene() -> Scene:
     """Load the scene from the compressed tarball included with the application.
+    The scene should be extremely simple, to make the rendering and collision detection fast:
+    use textures to add complexity.
 
-    The scene is based on "CCity Building Set 1" (https://skfb.ly/LpSC) by Neberkenezer and
-    is licensed under Creative Commons Attribution (https://creativecommons.org/licenses/by/4.0/).
+    All used textures are CC0-licensed and modified from the original ones.
     """
     # Extract the obj file
     extract_to = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../..', '.cache', 'models')

@@ -32,7 +32,7 @@ class TestDrone(Drone):
         super().__init__()
         self._camera = TestCamera()
         self._camera.setup()
-        self._status = TestStatus(scene_geoms=self._camera.scene_geoms())
+        self._status = TestStatus(camera=self._camera)
         self._status.start_updates()
         self._status_listeners: List[Callable[[Status], None]] = []
         self._status.bind(on_update=lambda _: [listener(self._status) for listener in self._status_listeners])
