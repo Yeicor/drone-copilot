@@ -20,6 +20,8 @@ if __name__ == '__main__':
         # Help PyInstaller find the data files
         from ui.video.video import MyVideo
         from ui.util.joystick import MyJoystick
+        _ignore1 = MyVideo
+        _ignore2 = MyJoystick
         # TODO: add more imports here (rename kivy-joystick to a valid name!)
 
     DroneCopilotApp().run()  # The main app
