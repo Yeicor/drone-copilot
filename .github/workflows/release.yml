@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   update-version:
-    name: Update the version in Cargo.toml
+    name: Update version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
     name: Builds for mobile
     runs-on: '${{ matrix.os }}'
     needs:
-      - update-cargo-version
+      - update-version
     strategy:
       fail-fast: false
       matrix:
@@ -76,7 +76,7 @@ jobs:
     name: Builds for desktop
     runs-on: '${{ matrix.os }}'
     needs:
-      - update-cargo-version
+      - update-version
     strategy:
       fail-fast: false
       matrix:
