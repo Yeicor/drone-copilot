@@ -55,7 +55,16 @@ jobs:
 
       - name: Install system dependencies (ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install -y build-essential git libssl-dev
+        run: |
+          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev \
+          libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          export PATH=$PATH:~/.local/bin/
+
+      - name: Install system dependencies (macos)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer autoconf automake
+          python3 -m pip install --user --upgrade kivy-ios
 
       - uses: actions/setup-python@v4
         with:
@@ -89,7 +98,10 @@ jobs:
         include: # TODO: Release different feature combinations (app-only, server-only and both)
           # Linux x86_64
           - os: ubuntu-latest
-            deps: sudo apt-get install -y upx
+            deps: |
+              sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev \
+              libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0 gstreamer1.0-plugins-base \
+              gstreamer1.0-plugins-good upx
           # Mac OS x86_64
           - os: macos-latest
             deps: ""
