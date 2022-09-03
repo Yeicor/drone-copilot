@@ -55,14 +55,14 @@ class Drone(ABC):
         return lambda: None
 
     @abstractmethod
-    def takeoff(self, callback: Callable[[bool], None]):
+    def takeoff(self, callback: Callable[[bool], None]):  # TODO: Cancel takeoff
         """Sends the command to take off the drone and returns "immediately".
         It will run the callback when/if the takeoff is complete, with a boolean indicating success.
         """
         pass
 
     @abstractmethod
-    def land(self, callback: Callable[[bool], None]):
+    def land(self, callback: Callable[[bool], None]):  # TODO: Cancel landing
         """Sends the command to land the drone and returns "immediately".
         It will run the callback when/if the landing is complete, with a boolean indicating success.
         """

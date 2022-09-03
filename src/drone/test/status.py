@@ -11,7 +11,7 @@ from drone.api.status import Status
 from drone.test.camera import TestCamera
 
 _DRONE_LAND_HEIGHT = 0.05
-_DRONE_COLLISION_RADIUS = 0.1
+_DRONE_COLLISION_RADIUS = 0.2
 
 
 @dataclass
@@ -29,6 +29,8 @@ class TestStatus(Status, EventDispatcher):
     def start_updates(self):
         # noinspection PyUnresolvedReferences
         self.register_event_type('on_update')
+        # noinspection PyUnresolvedReferences
+        self.register_event_type('on_collision')
         # Run update() every frame to update the transform, check for collisions and run callbacks.
         Clock.schedule_interval(self.update, 0.0)
 
@@ -70,8 +72,10 @@ class TestStatus(Status, EventDispatcher):
         You should also notify any status update listeners.
         """
         # Update the position and attitude
-        self._position_attitude.linear_local += self.velocity.linear_abs(self.position_attitude.angular) * dt
-        self._position_attitude.angular += self.velocity.angular * dt
+        speed_linear_abs = self.velocity.linear_abs(self.position_attitude.angular)
+        speed_angular = self.velocity.angular
+        self._position_attitude.linear_local += speed_linear_abs * dt
+        self._position_attitude.angular += speed_angular * dt
         # FIXME: Check for collisions with the scene
         self._collision_check([0, 0, 1], landing=True)  # Down (assume safe landing)
         self._collision_check([0, 0, -1])  # Up
@@ -83,22 +87,30 @@ class TestStatus(Status, EventDispatcher):
         self.dispatch('on_update')
 
     def _collision_check(self, ray_dir: List[float], landing=False):
-        may_collide = self.velocity.linear_local.dot(
-            ray_dir) > 0.0  # Move direction aligned with collision test direction
+        # Check if move direction is aligned with collision test direction
+        may_collide = self.velocity.linear_abs(self.position_attitude.angular).dot(ray_dir) > 0.0
         if may_collide:
-            dist_up = self.camera.raycast(self.position_attitude.linear_local, np.array(ray_dir))
-            if 0.0 <= dist_up < _DRONE_COLLISION_RADIUS:
-                if landing:
-                    if dist_up < _DRONE_LAND_HEIGHT:
-                        self._velocity = LinearAngular()
-                else:
-                    Logger.warn('TestStatus: collision (up)')
+            # NOTE: You can force yourself through an obstacle by repeatedly going forward and stopping.
+            dist = self.camera.raycast(self.position_attitude.linear_local, np.array(ray_dir))
+            if 0.0 <= dist < _DRONE_COLLISION_RADIUS:
+                # noinspection PyUnresolvedReferences
+                self.dispatch('on_collision', ray_dir, dist)
+                if not landing:
                     self._velocity.linear_local = -np.array(ray_dir) * 0.25  # Bounce a little bit
+                    self._velocity.angular = np.zeros(3)  # Stop rotation
 
                     def reset_vel(_dt: float):
                         self._velocity.linear_local = np.zeros(3)
 
                     Clock.schedule_once(reset_vel, 0.1)
+                else:
+                    if dist < _DRONE_LAND_HEIGHT:  # When landing go lower and just stop moving
+                        self._velocity.linear_local = np.zeros(3)
+                        self._velocity.angular = np.zeros(3)
 
-    def on_update(*args, **kwargs):
+    def on_update(self):
         pass
+
+    # noinspection PyMethodMayBeStatic
+    def on_collision(self, ray_dir, dist):
+        Logger.warn('TestStatus: collision (ray_dir: %s, dist: %.3fm)', ray_dir, dist)

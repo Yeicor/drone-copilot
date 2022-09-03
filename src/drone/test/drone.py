@@ -43,15 +43,8 @@ class TestDrone(Drone):
 
     def takeoff(self, callback: Callable[[bool], None]):
         # Slowly rise, wait 2 seconds, stop and run the callback
-        self.target_speed = LinearAngular(linear_local=np.array([0, 0, -0.5]))
-        Logger.info("TestDrone: Taking off")
-
-        def callback_wrapper(_dt: float):
-            self.target_speed = LinearAngular(linear_local=np.array([0, 0, 0]))
-            Logger.info("TestDrone: Takeoff complete")
-            callback(True)
-
-        Clock.schedule_once(callback_wrapper, 2.0)
+        self.target_speed.linear_local = np.array([0, 0, -0.5])
+        Clock.schedule_once(lambda _: self.target_speed.linear_local.fill(0) or callback(True), 2)
 
     def land(self, callback: Callable[[bool], None]):
         # Slowly fall down until we reach the ground, stop and run the callback
@@ -59,15 +52,15 @@ class TestDrone(Drone):
 
         def protocol(_dt: float):
             if self._status.flying:  # Force the drone to land by always setting the speed
-                self.target_speed = LinearAngular(linear_local=np.array([0, 0, 0.5]), angular=np.array([0, 0, 0]))
+                self.target_speed.linear_local = np.array([0, 0, 0.5])
             else:
-                self.target_speed = LinearAngular(linear_local=np.array([0, 0, 0]))
+                ev[0].cancel()  # Stop the protocol
                 callback(True)
-                ev[0].cancel()
+                self.target_speed.linear_local = np.array([0, 0, 0.0])
+                self.target_speed.angular = np.zeros(3)
 
         if self._status.height > 0.0:
-            Logger.info("TestDrone: Landing")
-            ev.append(Clock.schedule_interval(protocol, 0.1))
+            ev.append(Clock.schedule_interval(protocol, 0))
         else:
             Logger.warn("TestDrone: Cannot land, you have no ground below!")
             callback(False)

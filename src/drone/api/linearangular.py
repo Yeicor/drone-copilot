@@ -79,7 +79,7 @@ class LinearAngular(object):
 
     @property
     def angular_vector(self) -> np.ndarray:
-        """Converts the angles to a direction unit vector
+        """Converts the angles to a direction unit vector that points to the new forward
         """
         return np.array([
             np.cos(self.yaw) * np.cos(self.pitch),

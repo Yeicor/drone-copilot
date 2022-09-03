@@ -218,8 +218,8 @@ class DroneCopilotApp(App):
     # ==================== ACTIONS triggered by events ====================
     def action_joysticks(self, joystick_left_x: Optional[float], joystick_left_y: Optional[float],
                          joystick_right_x: Optional[float], joystick_right_y: Optional[float]):
-        Logger.debug('DroneCopilotApp: action_joysticks: {} {} {} {}'.format(
-            joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y))
+        # Logger.debug('DroneCopilotApp: action_joysticks: {} {} {} {}'.format(
+        #     joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y))
 
         if self.drone and self.drone.status.flying:
             # Update UI to show the current joystick values (only if they are enabled)

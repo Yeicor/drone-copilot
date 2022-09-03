@@ -62,8 +62,21 @@ class MySceneRenderer(Renderer):
         """
         pixels = self.fbo.texture.pixels
         width, height = self.size
-        # FIXME: non-square resolutions are broken!
         rgb_frame: np.ndarray = np.frombuffer(pixels, dtype=np.uint8).reshape((width, height, 4))
         rgb_frame = rgb_frame[:, :, :3]  # RGBA -> RGB
         rgb_frame = np.flip(rgb_frame, axis=0)  # flip the frame vertically
+        # Weird HACK: if resolution is not square, pixels are not aligned correctly
+        if width != height:
+            aspect_1 = width / height
+            min_size = min(width, height)
+            if height > width:
+                aspect_1 = 1 / aspect_1
+            if aspect_1 != int(aspect_1):  # FIXME: most resolutions are broken!
+                Logger.warn('Renderer: non-multiple width and height (those that don\'t validate '
+                            'width = n * height or height = n * width where n is an integer) are broken!')
+            else:
+                rgb_frame = rgb_frame.reshape((min_size, int(aspect_1), min_size, 3))
+                hacky_flip = rgb_frame[:, ::-1, :, :]
+                rgb_frame = hacky_flip.reshape((width, height, 3))
+
         return rgb_frame
