@@ -20,7 +20,7 @@ jobs:
       - name: Auto-update __version__ and move the release tag
         run: |
           export VERSION="${GITHUB_REF##*/}"
-          sed -E -i "sed "s/^__version__ = '.*'$/__version__ = '${VERSION:1}'/" src/main.py  # e.g. v0.0.1 -> version = "0.0.1"
+          sed -E -i "s/^__version__ = '.*'$/__version__ = '${VERSION:1}'/" src/main.py  # e.g. v0.0.1 -> version = "0.0.1"
           git config --global user.email "yeicor@users.noreply.github.com"
           git config --global user.name "Yeicor"
           if git commit -am "Update __version__ to ${VERSION:1} (automatic)"; then
@@ -30,7 +30,7 @@ jobs:
             git push -f --tags # Force push the tag to GitHub
             # The tag move will NOT trigger a new workflow
           else
-            echo "No change to the Cargo.toml version (did you repeat a release tag??)"
+            echo "No change to the version (did you repeat a release tag??)"
             exit 1
           fi
 
