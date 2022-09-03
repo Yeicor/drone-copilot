@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write # Required to upload artifacts to releases (and pushing the version update)
+
+jobs:
+  update-version:
+    name: Update the version in Cargo.toml
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'master' # HACK: Should be the tag, but we are making a push to master
+      - name: Auto-update __version__ and move the release tag
+        run: |
+          export VERSION="${GITHUB_REF##*/}"
+          sed -E -i "sed "s/^__version__ = '.*'$/__version__ = '${VERSION:1}'/" src/main.py  # e.g. v0.0.1 -> version = "0.0.1"
+          git config --global user.email "yeicor@users.noreply.github.com"
+          git config --global user.name "Yeicor"
+          if git commit -am "Update __version__ to ${VERSION:1} (automatic)"; then
+            git push
+            # Move the tag to the new commit
+            git tag -f -a "$VERSION" -m "$VERSION"
+            git push -f --tags # Force push the tag to GitHub
+            # The tag move will NOT trigger a new workflow
+          else
+            echo "No change to the Cargo.toml version (did you repeat a release tag??)"
+            exit 1
+          fi
+
+  build-mobile:
+    name: Builds for mobile
+    runs-on: '${{ matrix.os }}'
+    needs:
+      - update-cargo-version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Android
+          - os: ubuntu-latest
+            command: buildozer android debug  # TODO: Build for multiple architectures
+          # iOS
+          - os: macos-latest
+            command: buildozer ios debug
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install system dependencies
+        run: apt-get install -y python3 python3-dev python3-pip build-essential git
+
+      - name: Install python dependencies
+        run: pip3 install --user -r requirements.txt
+
+      - name: Build with Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
+        with:
+          command: ${{ matrix.command }}
+
+      - name: Publish the build
+        uses: softprops/action-gh-release@v1
+        with:
+          files: bin/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+
+  build-desktop:
+    name: Builds for desktop
+    runs-on: '${{ matrix.os }}'
+    needs:
+      - update-cargo-version
+    strategy:
+      fail-fast: false
+      matrix:
+        include: # TODO: Release different feature combinations (app-only, server-only and both)
+          # Linux x86_64
+          - os: ubuntu-latest
+            command: buildozer linux deploy
+          # TODO: Mac OS x86_64
+          - os: macos-latest
+            command: buildozer linux deploy
+          # Windows x86_64
+          - os: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install system dependencies
+        run: apt-get install -y python3 python3-dev python3-pip build-essential git
+
+      - name: Install python dependencies
+        run: pip3 install --user -r requirements.txt
