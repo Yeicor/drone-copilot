@@ -51,10 +51,16 @@ jobs:
             command: buildozer ios debug
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Install system dependencies
-        run: sudo apt-get install -y python3 python3-dev python3-pip build-essential git
+      - name: Install system dependencies (ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y build-essential git
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
 
       - name: Install python dependencies
         run: pip3 install --user -r requirements.txt
@@ -83,19 +89,34 @@ jobs:
         include: # TODO: Release different feature combinations (app-only, server-only and both)
           # Linux x86_64
           - os: ubuntu-latest
-            deps: sudo apt-get install -y python3 python3-dev python3-pip build-essential git
+            deps: sudo apt-get install -y upx
           # Mac OS x86_64
           - os: macos-latest
-            deps: "TODO"
+            deps: ""
           # Windows x86_64
           - os: windows-latest
-            deps: "TODO"
+            deps: ""
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install system dependencies
+        if: matrix.deps != ''
         run: ${{ matrix.deps }}
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip' # caching pip dependencies
 
       - name: Install python dependencies
         run: pip3 install --user -r requirements.txt
+
+      - name: Build a single executable with PyInstaller
+        run: python -m PyInstaller desktop.spec
+
+      - name: Publish the build
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+          token: ${{ secrets.GITHUB_TOKEN }}

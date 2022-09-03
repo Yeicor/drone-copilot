@@ -1,5 +1,6 @@
 import os
 import tarfile
+import tempfile
 
 from kivy import Logger
 from kivy3 import Scene
@@ -18,18 +19,15 @@ def load_scene() -> Scene:
     All used textures are CC0-licensed and modified from the original ones.
     """
     # Extract the obj file
-    extract_to = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../..', '.cache', 'models')
-    if not os.path.exists(extract_to):
-        os.makedirs(extract_to)
-        with tarfile.open(os.path.join(os.path.dirname(__file__), 'scene.tar.gz'), 'r|*') as tar:
-            tar.extractall(path=extract_to)
-        Logger.info('renderer3d: Extracted scene to %s', extract_to)
-    else:
-        Logger.info('renderer3d: Reusing cached extracted scene from %s', extract_to)
+    extract_to = tempfile.TemporaryDirectory()
+    with tarfile.open(os.path.join(os.path.dirname(__file__), 'scene.tar.gz'), 'r|*') as tar:
+        tar.extractall(path=extract_to.name)
+    Logger.info('renderer3d: Extracted scene to %s', extract_to)
     # Load the obj file
     loader = OBJMTLLoader()
-    obj_path = os.path.join(os.path.dirname(__file__), os.path.join(extract_to, 'scene.obj'))
-    loaded_obj = loader.load(obj_path, os.path.join(extract_to, 'scene.mtl'))
+    obj_path = os.path.join(os.path.dirname(__file__), os.path.join(extract_to.name, 'scene.obj'))
+    loaded_obj = loader.load(obj_path, os.path.join(extract_to.name, 'scene.mtl'))
+    extract_to.cleanup()  # Cleanup the temporary directory (no files left on the device)
     # Prepare the scene
     scene = Scene()
     # loaded_obj.pos.y = -0.3  # move the ground down a bit

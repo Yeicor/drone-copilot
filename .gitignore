@@ -6,8 +6,12 @@
 /venv/
 
 # Builds
+# - Android
 /.buildozer/
 /bin/
+# - Desktop (PyInstaller)
+/dist/
+/build/
 
 # IDE
 /.idea/
