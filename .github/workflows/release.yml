@@ -153,6 +153,8 @@ jobs:
           path: |
             ~/.cache/pypoetry
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
+      - uses: ssciwr/setup-mesa-dist-win@v1  # For OpenGL support on Windows (same as Xvfb)
+        if: matrix.os == 'windows-latest'
       - name: PyInstaller cache
         uses: actions/cache@v2
         with:
