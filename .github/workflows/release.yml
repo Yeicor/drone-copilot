@@ -128,20 +128,24 @@ jobs:
           #  deps: ''
           # Windows x86_64
           - os: windows-latest
-            deps: ''
+            deps: |
+              # Complete installation by adding poetry to the path
+              echo "C:\Users\runneradmin\AppData\Roaming\Python\Scripts" >> $GITHUB_PATH
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Install poetry
         run: curl -sSL https://install.python-poetry.org | python3 -
-      - name: Add poetry to the path (windows-only)
-        if: matrix.os == 'windows-latest'
-        run: echo "C:\Users\runneradmin\AppData\Roaming\Python\Scripts" >> $GITHUB_PATH
       - uses: actions/setup-python@v4
+        if: matrix.os != 'windows-latest' # Caching fails on windows :(
         with:
           python-version: 3.9
           cache: poetry
+      - uses: actions/setup-python@v4
+        if: matrix.os == 'windows-latest'
+        with:
+          python-version: 3.9
       - name: PyInstaller cache
         uses: actions/cache@v2
         with:
