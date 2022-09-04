@@ -152,10 +152,15 @@ jobs:
         run: ${{ matrix.deps }}
 
       - name: Install python dependencies
+        shell: bash
         run: poetry install --with build-desktop
 
       - name: Build a single executable with PyInstaller
-        run: poetry run python -m PyInstaller pyinstaller.spec
+        shell: bash
+        run: |
+          poetry run python -m PyInstaller pyinstaller.spec
+          # Better output names
+          mv dist/drone-copilot dist/drone-copilot-$(uname -o -m | tr ' /' '-' | tr '[:upper:]' '[:lower:]') || true
 
       - name: Publish the build
         uses: softprops/action-gh-release@v1
