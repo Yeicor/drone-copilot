@@ -7,11 +7,7 @@
 - [x] Manual control of the drone on all platforms (UI joysticks / keyboard / gamepad).
 - [x] A fully-featured test environment with a virtual drone for development and testing.
 - [ ] Autopilot [...].
-- [ ] Simultaneous localization and mapping (SLAM).
-- [x] Extensible:
-    - [x] A generic [Drone API](src/drone/api/drone.py) makes it easy to add support for most drones.
-    - [ ] Custom autopilot algorithms.
-- [ ] ...
+- [ ] Simultaneous Localization And Mapping (SLAM).
 
 ## Building
 

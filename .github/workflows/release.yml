@@ -53,13 +53,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Install poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
       - uses: actions/setup-python@v4
         id: setup-python
         with:
           python-version: 3.9
           cache: poetry
-      - name: Install poetry
-        run: curl -sSL https://install.python-poetry.org | python3 -
       - name: Buildozer cache
         uses: actions/cache@v2
         with:
@@ -135,12 +135,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Install poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
       - uses: actions/setup-python@v4
         with:
           python-version: 3.9
           cache: poetry
-      - name: Install poetry
-        run: curl -sSL https://install.python-poetry.org | python3 -
       - name: PyInstaller cache
         uses: actions/cache@v2
         with:
