@@ -85,9 +85,7 @@ jobs:
 
       - name: Build with Buildozer
         continue-on-error: true  # See hack below
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          command: poetry run buildozer ${{ matrix.buildozer_command }}
+        run: poetry run buildozer ${{ matrix.buildozer_command }}
 
       - name: 'HACK: fix buildozer build after first try'
         if: matrix.os == 'ubuntu-latest'
@@ -97,9 +95,7 @@ jobs:
 
       - name: Build with Buildozer
         if: matrix.os == 'ubuntu-latest'
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          command: poetry run buildozer ${{ matrix.buildozer_command }}
+        run: poetry run buildozer ${{ matrix.buildozer_command }}
 
       - name: Publish the build
         uses: softprops/action-gh-release@v1
