@@ -45,7 +45,7 @@ jobs:
         include:
           # Android
           - os: ubuntu-latest
-            command: buildozer android debug  # TODO: Build for multiple architectures
+            command: buildozer android debug
           # iOS # TODO: tensorflow-macos can't be installed on macos for some reason...
           #- os: macos-latest
           #  command: buildozer ios debug
@@ -59,6 +59,8 @@ jobs:
           sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev \
           libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
           export PATH=$PATH:~/.local/bin/
+          # Enable ALL architectures for android builds
+          sed -E -i 's/^android.archs = .*$/android.archs = armeabi-v7a,arm64-v8a,x86,x86_64/g' buildozer.spec 
 
       - name: Install system dependencies (macos)
         if: matrix.os == 'macos-latest'
@@ -85,7 +87,7 @@ jobs:
       - name: 'HACK: fix buildozer build after first try'
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sed -E -i "s/(openssl_prereq.pkg_config_location, env.*)/[\1]/" \
+          sudo sed -E -i "s/(openssl_prereq.pkg_config_location, env.*)/[\1]/" \
           .buildozer/android/platform/python-for-android/pythonforandroid/recipes/hostpython3/__init__.py
 
       - name: Build with Buildozer
