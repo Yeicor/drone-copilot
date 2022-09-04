@@ -58,7 +58,6 @@ jobs:
         run: |
           sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev \
           libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-          export PATH=$PATH:~/.local/bin/
           # Enable ALL architectures for android builds
           sed -E -i 's/^android.archs = .*$/android.archs = armeabi-v7a,arm64-v8a,x86,x86_64/g' buildozer.spec 
 
@@ -124,7 +123,8 @@ jobs:
               sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev \
               libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0 gstreamer1.0-plugins-base \
               gstreamer1.0-plugins-good libmtdev-dev xvfb upx
-              export DISPLAY=':99.0'
+              echo "DISPLAY=:99.0" >> $GITHUB_ENV
+              echo "::set-env name=DISPLAY::GITHUB_CONTAINER_REGISTRY_PAT"
               Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
           # Mac OS x86_64 # TODO: tensorflow-macos can't be installed on macos for some reason...
           #- os: macos-latest
