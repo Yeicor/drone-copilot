@@ -46,9 +46,9 @@ jobs:
           # Android
           - os: ubuntu-latest
             command: buildozer android debug  # TODO: Build for multiple architectures
-          # iOS
-          - os: macos-latest
-            command: buildozer ios debug
+          # iOS # TODO: tensorflow-macos can't be installed on macos for some reason...
+          #- os: macos-latest
+          #  command: buildozer ios debug
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -77,8 +77,20 @@ jobs:
         run: pip3 install -r requirements.txt
 
       - name: Build with Buildozer
+        continue-on-error: true  # See hack below
         uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
+        with:
+          command: ${{ matrix.command }}
+
+      - name: 'HACK: fix buildozer build after first try'
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sed -E -i "s/(openssl_prereq.pkg_config_location, env.*)/[\1]/" \
+          .buildozer/android/platform/python-for-android/pythonforandroid/recipes/hostpython3/__init__.py
+
+      - name: Build with Buildozer
+        if: matrix.os == 'ubuntu-latest'
+        uses: ArtemSBulgakov/buildozer-action@v1
         with:
           command: ${{ matrix.command }}
 
@@ -97,7 +109,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: # TODO: Release different feature combinations (app-only, server-only and both)
+        include:
           # Linux x86_64
           - os: ubuntu-latest
             deps: |
@@ -106,11 +118,11 @@ jobs:
               gstreamer1.0-plugins-good libmtdev-dev xvfb upx
               export DISPLAY=':99.0'
               Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-          # Mac OS x86_64
-          - os: macos-latest
-            deps: |
-              cat requirements.txt | sed -E "s/tensorflow-gpu/tensorflow-macos/" >requirements2.txt
-              mv requirements2.txt requirements.txt
+          # Mac OS x86_64 # TODO: tensorflow-macos can't be installed on macos for some reason...
+          #- os: macos-latest
+          #  deps: |
+          #    cat requirements.txt | sed -E "s/tensorflow-gpu/tensorflow-macos/" >requirements2.txt
+          #    mv requirements2.txt requirements.txt
           # Windows x86_64
           - os: windows-latest
             deps: |
