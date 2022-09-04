@@ -124,7 +124,6 @@ jobs:
               libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0 gstreamer1.0-plugins-base \
               gstreamer1.0-plugins-good libmtdev-dev xvfb upx
               echo "DISPLAY=:99.0" >> $GITHUB_ENV
-              echo "::set-env name=DISPLAY::GITHUB_CONTAINER_REGISTRY_PAT"
               Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
           # Mac OS x86_64 # TODO: tensorflow-macos can't be installed on macos for some reason...
           #- os: macos-latest
