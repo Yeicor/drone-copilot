@@ -158,6 +158,12 @@ FloatLayout:
         BoxLayout: # Just a spacer to move the buttons to the top
             size_hint: (None, 3)
 
+    # === TOP SETTINGS ===
+    BoxLayout:
+        id: top_panel
+        size_hint: (0.5 * float(app.config.get('ui', 'scaling')), .05 * float(app.config.get('ui', 'scaling')))
+        pos_hint: {'x': 0.5 - self.size_hint[0] / 2, 'y': 1 - self.size_hint[1]}
+
     # === TOP-RIGHT SETTINGS ===
     BoxLayout:
         id: top_right_panel

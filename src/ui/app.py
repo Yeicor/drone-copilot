@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, Callable, List, Dict
 
 import numpy as np
@@ -7,6 +8,7 @@ from kivy.app import App
 from kivy.clock import mainthread
 from kivy.config import ConfigParser
 from kivy.core.window import Window, Keyboard
+from kivy.modules import monitor
 from kivy.uix.settings import SettingsWithSpinner
 
 from drone.api.camera import Camera
@@ -49,6 +51,9 @@ class DroneCopilotApp(App):
                     on_joy_button_down=lambda *args: self.on_gamepad_press(*args, down=True),
                     on_joy_button_up=lambda *args: self.on_gamepad_press(*args, down=False))
 
+        if Logger.isEnabledFor(logging.DEBUG):  # Can be configured from the settings UI or file!
+            self.setup_monitor()
+
     def build_settings(self, settings):
         settings.add_json_panel(self.title, self.config, data=get_settings_meta())
 
@@ -63,6 +68,51 @@ class DroneCopilotApp(App):
     def dispatch(self, *args, **kwargs):  # Needed to avoid EventDispatcher warnings
         # noinspection PyUnresolvedReferences
         super(DroneCopilotApp, self).dispatch(*args, **kwargs)
+
+    def setup_monitor(self):
+        app = self
+
+        def monitor_x_offset():
+            return Window.width * 1 / 4
+
+        def update_stats_hack(win, ctx, *largs):
+            ctx.stats = ctx.stats[1:] + [monitor._statsinput]
+            monitor._statsinput = 0
+            m = max(1., monitor._maxinput)
+            for i, x in enumerate(ctx.stats):
+                ctx.statsr[i].size = (4, ctx.stats[i] / m * 20)
+                ctx.statsr[i].pos = (monitor_x_offset() + win.width - 64 * 4 + i * 4, win.height - 25)
+
+        def _update_monitor_canvas_hack(win, ctx, *largs):
+            with win.canvas.after:
+                ctx.overlay.pos = (monitor_x_offset(), win.height - 25)
+                ctx.overlay.size = (win.width, 25)
+                ctx.rectangle.pos = (monitor_x_offset() + 5, win.height - 20)
+
+        monitor.update_stats = update_stats_hack
+        monitor._update_monitor_canvas = _update_monitor_canvas_hack
+
+        class FakeWindow(object):
+            def __init__(self):
+                pass
+
+            @property
+            def width(self):
+                return Window.width / 2
+
+            @property
+            def height(self):
+                return Window.height
+
+            @property
+            def canvas(self):
+                return app.root.ids.top_panel.canvas
+
+            def bind(self, *args, **kwargs):
+                return Window.bind(*args, **kwargs)
+
+        monitor.start(FakeWindow(), self.root.ids.top_panel)
+        _update_monitor_canvas_hack(FakeWindow(), self.root.ids.top_panel)
 
     # ==================== LISTENERS & HANDLERS ====================
     def on_start(self):
@@ -113,9 +163,9 @@ class DroneCopilotApp(App):
             cur_max_temp_c = max(drone_status.temperatures.values()) - 273.15  # Kelvin to Celsius.
             self.root.ids.temperature_label.text = '{:.1f}ºC'.format(cur_max_temp_c)  # TODO: Configure display units
         # SIGNAL
-        self.root.ids.signal_label = str(int(drone_status.signal_strength * 100)) + '%'
+        self.root.ids.signal_label.text = str(int(drone_status.signal_strength * 100)) + '%'
         # HEIGHT
-        self.root.ids.height_label = '{:.2f}m'.format(drone_status.height)
+        self.root.ids.height_label.text = '{:.2f}m'.format(drone_status.height)
         # ENABLED UI ELEMENTS AND CONTENTS
         self.root.ids.joystick_left.disabled = not self.drone.status.flying
         self.root.ids.joystick_right.disabled = not self.drone.status.flying
