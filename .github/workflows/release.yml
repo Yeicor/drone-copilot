@@ -138,7 +138,7 @@ jobs:
       - name: Install poetry
         run: curl -sSL https://install.python-poetry.org | python3 -
       - uses: actions/setup-python@v4
-        if: matrix.os != 'windows-latest' # Caching fails on windows :(
+        if: matrix.os != 'windows-latest' # Caching with setup-python fails on windows, so we do it manually
         with:
           python-version: 3.9
           cache: poetry
@@ -146,6 +146,13 @@ jobs:
         if: matrix.os == 'windows-latest'
         with:
           python-version: 3.9
+      - name: Cache poetry
+        if: matrix.os == 'windows-latest'
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
       - name: PyInstaller cache
         uses: actions/cache@v2
         with:
