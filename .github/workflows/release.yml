@@ -82,7 +82,7 @@ jobs:
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
 
       - name: Install python dependencies
-        run: poetry install --with build-android --without main
+        run: poetry install --with build-mobile --without main
 
       - name: Build with Buildozer
         continue-on-error: true  # See hack below
