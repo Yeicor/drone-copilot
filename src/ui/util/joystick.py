@@ -1,8 +1,6 @@
-import importlib
-
 from kivy.properties import BooleanProperty
 
-joystick = importlib.import_module("kivy-joystick")
+import joystick
 
 
 class MyJoystick(joystick.Joystick):

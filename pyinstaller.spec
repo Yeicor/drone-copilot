@@ -1,27 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
+
 import os
+from PyInstaller.utils.hooks import collect_system_data_files
 
 block_cipher = None
-
-from_dir_add_extensions = {
-    'src'+os.path.sep: ['.kv', '.png', '.jpg', '.glsl', '.gz', '.tflite']
-}
-
-datas_auto = []
-for dir, exts in from_dir_add_extensions.items():
-    for root, dirs, files in os.walk(dir):
-        for file in files:
-            if os.path.splitext(file)[1] in exts:
-                datas_auto.append((os.path.join(root, file), root.replace(dir, '')))
 
 a = Analysis(
     [os.path.join('src', 'main.py')],
     pathex=[],
     binaries=[],
-    datas=datas_auto,
-    # Help PyInstaller locate required *.kv modules:
-    hiddenimports=['ui.video.video.MyVideo', 'ui.util.joystick.MyJoystick'],
-    hookspath=[],
+    datas=collect_system_data_files('src'),
+    hiddenimports=[],
+    hookspath=['pyinstaller-hooks'],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
