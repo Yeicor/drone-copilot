@@ -157,7 +157,7 @@ jobs:
         run: poetry install --with build-desktop
 
       - name: Build a single executable with PyInstaller
-        run: poetry run python -m PyInstaller desktop.spec
+        run: poetry run python -m PyInstaller pyinstaller.spec
 
       - name: Publish the build
         uses: softprops/action-gh-release@v1
