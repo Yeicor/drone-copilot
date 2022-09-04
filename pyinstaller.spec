@@ -42,5 +42,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=os.path.join('..', 'src', 'assets', 'other', 'icon.png'),
+    icon=os.path.join('src', 'assets', 'other', 'icon.png'),
 )
