@@ -53,10 +53,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+      - name: Poetry cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
+
       - name: Install system dependencies (ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev \
+          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev \
           libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
           # Enable ALL architectures for android builds
           sed -E -i 's/^android.archs = .*$/android.archs = armeabi-v7a,arm64-v8a,x86,x86_64/g' buildozer.spec 
@@ -68,17 +79,6 @@ jobs:
           python3 -m pip install --upgrade kivy-ios
           cat requirements.txt | sed -E "s/tensorflow-gpu==.*/tensorflow-macos/" >requirements2.txt
           mv requirements2.txt requirements.txt
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-      - name: Install poetry
-        run: curl -sSL https://install.python-poetry.org | python3 -
-      - name: Poetry cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
 
       - name: Install python dependencies
         run: poetry install --with build-mobile --without main
@@ -128,14 +128,12 @@ jobs:
           #    mv requirements2.txt requirements.txt
           # Windows x86_64
           - os: windows-latest
-            deps: ''
+            deps: |
+              # Complete installation by adding poetry to the path
+              echo "C:\Users\runneradmin\AppData\Roaming\Python\Scripts" >> $GITHUB_PATH
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Install system dependencies
-        if: matrix.deps != ''
-        run: ${{ matrix.deps }}
 
       - uses: actions/setup-python@v4
         with:
@@ -147,6 +145,11 @@ jobs:
         with:
           path: ~/.cache/pypoetry
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
+
+      - name: Install system dependencies
+        if: matrix.deps != ''
+        shell: bash  # For easier windows support
+        run: ${{ matrix.deps }}
 
       - name: Install python dependencies
         run: poetry install --with build-desktop
