@@ -45,7 +45,7 @@ jobs:
         include:
           # Android
           - os: ubuntu-latest
-            buildozer_command: clean android debug
+            buildozer_command: android debug
           # iOS # TODO: tensorflow-macos can't be installed on macos for some reason...
           #- os: macos-latest
           #  buildozer_command: ios debug
@@ -63,6 +63,11 @@ jobs:
         with:
           path: ~/.cache/pypoetry
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
+      - name: Buildozer cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.buildozer
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-buildozer-${{ hashFiles('buildozer.spec') }}
 
       - name: Install system dependencies (ubuntu)
         if: matrix.os == 'ubuntu-latest'
@@ -145,6 +150,11 @@ jobs:
         with:
           path: ~/.cache/pypoetry
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
+      - name: PyInstaller cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.buildozer
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pyinstaller-${{ hashFiles('pyinstaller.spec') }}
 
       - name: Install system dependencies
         if: matrix.deps != ''
