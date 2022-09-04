@@ -64,8 +64,8 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer autoconf automake
-          python3 -m pip install --user --upgrade kivy-ios
-          cat requirements.txt | sed -E "s/tensorflow-gpu/tensorflow-macos/" >requirements2.txt
+          python3 -m pip install --upgrade kivy-ios
+          cat requirements.txt | sed -E "s/tensorflow-gpu==.*/tensorflow-macos/" >requirements2.txt
           mv requirements2.txt requirements.txt
 
       - uses: actions/setup-python@v4
@@ -74,7 +74,7 @@ jobs:
           cache: 'pip'
 
       - name: Install python dependencies
-        run: pip3 install --user -r requirements.txt
+        run: pip3 install -r requirements.txt
 
       - name: Build with Buildozer
         uses: ArtemSBulgakov/buildozer-action@v1
@@ -103,7 +103,9 @@ jobs:
             deps: |
               sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev \
               libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0 gstreamer1.0-plugins-base \
-              gstreamer1.0-plugins-good upx
+              gstreamer1.0-plugins-good libmtdev-dev xvfb upx
+              export DISPLAY=':99.0'
+              Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
           # Mac OS x86_64
           - os: macos-latest
             deps: |
@@ -127,7 +129,7 @@ jobs:
           cache: 'pip' # caching pip dependencies
 
       - name: Install python dependencies
-        run: pip3 install --user -r requirements.txt
+        run: pip3 install -r requirements.txt
 
       - name: Build a single executable with PyInstaller
         run: python -m PyInstaller desktop.spec
