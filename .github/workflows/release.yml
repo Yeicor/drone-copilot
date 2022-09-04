@@ -63,7 +63,7 @@ jobs:
       - name: Buildozer cache
         uses: actions/cache@v2
         with:
-          path: ~/.buildozer
+          path: .buildozer
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-buildozer-${{ hashFiles('buildozer.spec') }}
 
       - name: Install system dependencies (ubuntu)
@@ -150,15 +150,14 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: actions/cache@v2
         with:
-          path: |
-            ~/.cache/pypoetry
+          path: C:\Users\runneradmin\AppData\Roaming\pypoetry
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
       - uses: ssciwr/setup-mesa-dist-win@v1  # For OpenGL support on Windows (same as Xvfb)
         if: matrix.os == 'windows-latest'
       - name: PyInstaller cache
         uses: actions/cache@v2
         with:
-          path: ~/.buildozer
+          path: build
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pyinstaller-${{ hashFiles('pyinstaller.spec') }}
 
       - name: Install system dependencies
