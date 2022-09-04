@@ -45,7 +45,7 @@ jobs:
         include:
           # Android
           - os: ubuntu-latest
-            buildozer_command: android debug
+            buildozer_command: clean android debug
           # iOS # TODO: tensorflow-macos can't be installed on macos for some reason...
           #- os: macos-latest
           #  buildozer_command: ios debug
@@ -68,7 +68,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev \
-          libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev aidl
           # Enable ALL architectures for android builds
           sed -E -i 's/^android.archs = .*$/android.archs = armeabi-v7a,arm64-v8a,x86,x86_64/g' buildozer.spec 
 
