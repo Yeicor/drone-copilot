@@ -1,14 +1,14 @@
-import os
-import sys
-
-from kivy.resources import resource_add_path
-from kivy.utils import platform
-
-from ui.app import DroneCopilotApp
-
 __version__ = '0.2.18'
 
 if __name__ == '__main__':
+    import os
+    import sys
+
+    from kivy.resources import resource_add_path
+    from kivy.utils import platform
+
+    from ui.app import DroneCopilotApp
+
     if platform != 'android' and platform != 'ios':
         from kivy.config import Config
 
@@ -21,6 +21,7 @@ if __name__ == '__main__':
         from ui.video.video import MyVideo
         from ui.util.joystick import MyJoystick
         from ui.util.shadow import *
+
         _ignore1 = MyVideo
         _ignore2 = MyJoystick
         _ignore3 = ShadowLabel
