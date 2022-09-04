@@ -87,7 +87,7 @@ jobs:
         continue-on-error: true  # See hack below
         run: poetry run buildozer ${{ matrix.buildozer_command }}
 
-      - name: 'HACK: fix buildozer build after first try'
+      - name: 'HACK: fix buildozer build after first try' # TODO: Remove when https://github.com/kivy/python-for-android/commit/cdbee357d3425b53de75d60d1d1a9d21a2c4730b is released
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo sed -E -i "s/(openssl_prereq.pkg_config_location, env.*)/[\1]/" \
