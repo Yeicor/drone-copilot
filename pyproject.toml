@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "drone-copilot"
+version = "0.0.0+see_src_main.py"
+description = "A cross-platform application to fly a drone using different autopilot algorithms"
+authors = ["Yeicor <4929005+Yeicor@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+# Core
+python = ">=3.9,<3.11"
+
+# Kivy & Widgets
+Kivy = "^2.1.0"
+joystick = "git+https://github.com/Yeicor/joystick@master"
+kivy3 = "git+https://github.com/KeyWeeUsr/kivy3@master"
+
+# Drone management
+tellopy = "git+https://github.com/hanyazou/TelloPy@develop-0.7.0"
+
+# AI
+opencv-python = "^4.6.0.66"
+tensorflow-gpu = "^2.9.1"
+
+# Misc
+plyer = "^2.0.0" # Cross-platform utilities
+ffpyplayer = "^4.3.5" # Video player
+Pillow = "^9.2.0" # Image processing
+camera4kivy = "^0.0.7" # TODO: Remove when replaced
+
+[tool.poetry.group.build-mobile] # poetry install --with build-mobile --without main
+optional = true
+[tool.poetry.group.build-mobile.dependencies]
+Cython = "^0.29.32"
+buildozer = "^1.4.0"
+
+[tool.poetry.group.build-desktop] # poetry install --with build-desktop
+optional = true
+[tool.poetry.group.build-desktop.dependencies]
+pyinstaller = "^5.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

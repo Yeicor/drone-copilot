@@ -45,10 +45,10 @@ jobs:
         include:
           # Android
           - os: ubuntu-latest
-            command: buildozer android debug
+            buildozer_command: android debug
           # iOS # TODO: tensorflow-macos can't be installed on macos for some reason...
           #- os: macos-latest
-          #  command: buildozer ios debug
+          #  buildozer_command: ios debug
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -73,16 +73,21 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-          cache: 'pip'
+      - name: Install poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+      - name: Poetry cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
 
       - name: Install python dependencies
-        run: pip3 install -r requirements.txt
+        run: poetry install --with build-android --without main
 
       - name: Build with Buildozer
         continue-on-error: true  # See hack below
         uses: ArtemSBulgakov/buildozer-action@v1
         with:
-          command: ${{ matrix.command }}
+          command: poetry run buildozer ${{ matrix.buildozer_command }}
 
       - name: 'HACK: fix buildozer build after first try'
         if: matrix.os == 'ubuntu-latest'
@@ -94,7 +99,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: ArtemSBulgakov/buildozer-action@v1
         with:
-          command: ${{ matrix.command }}
+          command: poetry run buildozer ${{ matrix.buildozer_command }}
 
       - name: Publish the build
         uses: softprops/action-gh-release@v1
@@ -139,13 +144,18 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-          cache: 'pip' # caching pip dependencies
+      - name: Install poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+      - name: Poetry cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
 
       - name: Install python dependencies
-        run: pip3 install -r requirements.txt
+        run: poetry install --with build-desktop
 
       - name: Build a single executable with PyInstaller
-        run: python -m PyInstaller desktop.spec
+        run: poetry run python -m PyInstaller desktop.spec
 
       - name: Publish the build
         uses: softprops/action-gh-release@v1
