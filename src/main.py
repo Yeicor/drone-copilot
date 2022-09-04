@@ -1,4 +1,4 @@
-__version__ = '0.2.24'
+__version__ = '0.2.25'
 
 if __name__ == '__main__':
     import os
