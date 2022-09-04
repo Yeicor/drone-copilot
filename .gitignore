@@ -4,6 +4,7 @@
 
 # Environment
 /venv/
+/.venv/
 
 # Builds
 # - Android

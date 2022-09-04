@@ -79,6 +79,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
 
       - name: Install python dependencies
         run: poetry install --with build-android --without main
@@ -150,6 +151,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
 
       - name: Install python dependencies
         run: poetry install --with build-desktop
