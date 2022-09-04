@@ -10,7 +10,7 @@ python-versions = ">=3.6"
 name = "altgraph"
 version = "0.17.2"
 description = "Python graph (network) package"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -30,7 +30,7 @@ wheel = ">=0.23.0,<1.0"
 name = "buildozer"
 version = "1.4.0"
 description = "Generic Python packager for Android / iOS and Desktop"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -81,7 +81,7 @@ unicode_backport = ["unicodedata2"]
 name = "Cython"
 version = "0.29.32"
 description = "The Cython compiler for writing C extensions for the Python language."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
@@ -89,7 +89,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 name = "distlib"
 version = "0.3.6"
 description = "Distribution utilities"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -113,7 +113,7 @@ python-versions = "*"
 name = "filelock"
 version = "3.8.0"
 description = "A platform independent file lock."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -133,7 +133,7 @@ python-versions = "*"
 name = "future"
 version = "0.18.2"
 description = "Clean single-source support for Python 3 and 2"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
@@ -250,11 +250,18 @@ testing = ["flufl.flake8", "importlib-resources (>=1.3)", "packaging", "pyfakefs
 
 [[package]]
 name = "joystick"
-version = "0.3.8"
-description = "Real-time plotting and logging while console controlling"
+version = "0.0.1"
+description = "A on screen joystick for Kivy."
 category = "main"
 optional = false
 python-versions = "*"
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/Yeicor/joystick"
+reference = "master"
+resolved_reference = "d32deea4db058a1a78ba05c6de95235503cd05e6"
 
 [[package]]
 name = "keras"
@@ -346,11 +353,18 @@ requests = "*"
 
 [[package]]
 name = "kivy3"
-version = "0.0.1.dev0"
+version = "0.1"
 description = "Kivy extensions for 3D graphics"
 category = "main"
 optional = false
 python-versions = "*"
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/KeyWeeUsr/kivy3"
+reference = "master"
+resolved_reference = "2b70e5021c2255962dabe124a66aede0adcc102f"
 
 [[package]]
 name = "libclang"
@@ -364,7 +378,7 @@ python-versions = "*"
 name = "macholib"
 version = "1.16"
 description = "Mach-O header analysis and editing"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -460,7 +474,7 @@ pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"
 name = "pefile"
 version = "2022.5.30"
 description = "Python PE parsing module"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.0"
 
@@ -471,7 +485,7 @@ future = "*"
 name = "pexpect"
 version = "4.8.0"
 description = "Pexpect allows easy control of interactive console applications."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -494,7 +508,7 @@ tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "pa
 name = "platformdirs"
 version = "2.5.2"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -528,7 +542,7 @@ python-versions = ">=3.5"
 name = "ptyprocess"
 version = "0.7.0"
 description = "Run a subprocess in a pseudo terminal"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -566,7 +580,7 @@ plugins = ["importlib-metadata"]
 name = "pyinstaller"
 version = "5.3"
 description = "PyInstaller bundles a Python application and all its dependencies into a single package."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "<3.11,>=3.7"
 
@@ -586,7 +600,7 @@ hook_testing = ["execnet (>=1.5.0)", "psutil", "pytest (>=2.7.3)"]
 name = "pyinstaller-hooks-contrib"
 version = "2022.10"
 description = "Community maintained hooks for PyInstaller"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -624,7 +638,7 @@ python-versions = "*"
 name = "pywin32-ctypes"
 version = "0.2.0"
 description = ""
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -689,7 +703,7 @@ testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (
 name = "sh"
 version = "1.14.3"
 description = "Python subprocess replacement"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -703,11 +717,18 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
 name = "tellopy"
-version = "0.6.0"
+version = "0.7.0.dev0"
 description = "DJI Tello drone controller"
 category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/hanyazou/TelloPy"
+reference = "develop-0.7.0"
+resolved_reference = "2e3ff77f87448307d6d2656c91ac80e2fb352193"
 
 [[package]]
 name = "tensorboard"
@@ -836,7 +857,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 name = "virtualenv"
 version = "20.16.4"
 description = "Virtual Python Environment builder"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -897,7 +918,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "14cd4ef46913732215272b59414a51920d6b63cb2ce49f2b434428cb312df2de"
+content-hash = "d1c47909594052ccc495cf444aaa27e20e2d5702663c6ce7111e6b1b33a873dc"
 
 [metadata.files]
 absl-py = [
@@ -1113,9 +1134,7 @@ importlib-metadata = [
     {file = "importlib_metadata-4.12.0-py3-none-any.whl", hash = "sha256:7401a975809ea1fdc658c3aa4f78cc2195a0e019c5cbc4c06122884e9ae80c23"},
     {file = "importlib_metadata-4.12.0.tar.gz", hash = "sha256:637245b8bab2b6502fcbc752cc4b7a6f6243bb02b31c5c26156ad103d3d45670"},
 ]
-joystick = [
-    {file = "joystick-0.3.8.tar.gz", hash = "sha256:c57ad8888b479723ed28b6952765e5ae03bfe5154680c64dd5f722eb6e240c43"},
-]
+joystick = []
 keras = [
     {file = "keras-2.9.0-py2.py3-none-any.whl", hash = "sha256:55911256f89cfc9343c9fbe4b61ec45a2d33d89729cbe1ab9dcacf8b07b8b6ab"},
 ]
@@ -1180,10 +1199,7 @@ Kivy-Garden = [
     {file = "Kivy Garden-0.1.5.tar.gz", hash = "sha256:2b8377378e87501d5d271f33d94f0e44c089884572c64f89c9d609b1f86a2748"},
     {file = "Kivy_Garden-0.1.5-py3-none-any.whl", hash = "sha256:ef50f44b96358cf10ac5665f27a4751bb34ef54051c54b93af891f80afe42929"},
 ]
-kivy3 = [
-    {file = "kivy3-0.0.1.dev0-py3-none-any.whl", hash = "sha256:5b7c88b14c1834396997635b2f6d27da730ec1c4b993b2dc4643707b37d34469"},
-    {file = "kivy3-0.0.1.dev0.tar.gz", hash = "sha256:906726314fb78dae3ce289d0644290c4d5632e1afeae20ab263f1ffbb12d7e7a"},
-]
+kivy3 = []
 libclang = [
     {file = "libclang-14.0.6-py2.py3-none-macosx_10_9_x86_64.whl", hash = "sha256:8791cf3c3b087c373a6d61e9199da7a541da922c9ddcfed1122090586b996d6e"},
     {file = "libclang-14.0.6-py2.py3-none-macosx_11_0_arm64.whl", hash = "sha256:7b06fc76bd1e67c8b04b5719bf2ac5d6a323b289b245dfa9e468561d99538188"},
@@ -1506,9 +1522,7 @@ six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
-tellopy = [
-    {file = "tellopy-0.6.0-py2.py3-none-any.whl", hash = "sha256:a1c84e3142cc0a784473877bb9688aa07edd8ad2e4a22f47d6e10ec544e9c663"},
-]
+tellopy = []
 tensorboard = [
     {file = "tensorboard-2.9.1-py3-none-any.whl", hash = "sha256:baa727f791776f9e5841d347127720ceed4bbd59c36b40604b95fb2ae6029276"},
 ]

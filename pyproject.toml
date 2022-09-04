@@ -11,11 +11,12 @@ python = ">=3.9,<3.11"
 
 # Kivy & Widgets
 Kivy = "^2.1.0"
-joystick = "git+https://github.com/Yeicor/joystick@master"
-kivy3 = "git+https://github.com/KeyWeeUsr/kivy3@master"
+joystick = {git = "https://github.com/Yeicor/joystick", rev = "master"}
+kivy3 = {git = "https://github.com/KeyWeeUsr/kivy3", rev = "master"}
 
 # Drone management
-tellopy = "git+https://github.com/hanyazou/TelloPy@develop-0.7.0"
+tellopy = {git = "https://github.com/hanyazou/TelloPy", rev = "develop-0.7.0"}
+# TODO: dronekit??
 
 # AI
 opencv-python = "^4.6.0.66"
