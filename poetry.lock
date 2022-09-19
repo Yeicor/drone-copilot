@@ -49,7 +49,7 @@ python-versions = "~=3.7"
 
 [[package]]
 name = "camera4kivy"
-version = "0.0.7"
+version = "0.0.9"
 description = "Yet Another Camera for Kivy"
 category = "main"
 optional = false
@@ -918,7 +918,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "d1c47909594052ccc495cf444aaa27e20e2d5702663c6ce7111e6b1b33a873dc"
+content-hash = "4c8ee54d41578146f5c192a5357c11399709ba3568833137cdd63918fb1f6a02"
 
 [metadata.files]
 absl-py = [
@@ -942,8 +942,8 @@ cachetools = [
     {file = "cachetools-5.2.0.tar.gz", hash = "sha256:6a94c6402995a99c3970cc7e4884bb60b4a8639938157eeed436098bf9831757"},
 ]
 camera4kivy = [
-    {file = "camera4kivy-0.0.7-py3-none-any.whl", hash = "sha256:9ea74f85a4a7adc312661df39a55120e73c823baf4b900641b4d989cf88ce24a"},
-    {file = "camera4kivy-0.0.7.tar.gz", hash = "sha256:38f3a525bf3d0caec4c69f3e182af1b56d333aed4bb34383099759632dc84254"},
+    {file = "camera4kivy-0.0.9-py3-none-any.whl", hash = "sha256:15b59774f6e4d908ab247b79c33ba6c9348b18947b727947b82c056ccbbfc3d2"},
+    {file = "camera4kivy-0.0.9.tar.gz", hash = "sha256:ed674c211aea3e1db46b745ac631e6c02d9ffe70df40bf6773c412f3e5a91d21"},
 ]
 certifi = [
     {file = "certifi-2022.6.15-py3-none-any.whl", hash = "sha256:fe86415d55e84719d75f8b69414f6438ac3547d2078ab91b67e779ef69378412"},
