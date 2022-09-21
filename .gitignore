@@ -14,5 +14,8 @@
 /dist/
 /build/
 
+# Python
+__pycache__/
+
 # IDE
 /.idea/
