@@ -49,14 +49,14 @@ python-versions = "~=3.7"
 
 [[package]]
 name = "camera4kivy"
-version = "0.0.9"
+version = "0.1.0"
 description = "Yet Another Camera for Kivy"
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-gestures4kivy = ">=0.0.7"
+gestures4kivy = ">=0.1.0"
 
 [[package]]
 name = "certifi"
@@ -147,7 +147,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "gestures4kivy"
-version = "0.0.7"
+version = "0.1.0"
 description = "Detect common touch gestures in Kivy apps"
 category = "main"
 optional = false
@@ -918,7 +918,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "a3850c07be4d90f68214215d051c8c9b28292151b1c320e37a15ffe75635fca5"
+content-hash = "c9d6c2537cff593689cf0acc6f6c84fa76e8541e59cc6c3c17c535a83312f00e"
 
 [metadata.files]
 absl-py = [
@@ -942,8 +942,8 @@ cachetools = [
     {file = "cachetools-5.2.0.tar.gz", hash = "sha256:6a94c6402995a99c3970cc7e4884bb60b4a8639938157eeed436098bf9831757"},
 ]
 camera4kivy = [
-    {file = "camera4kivy-0.0.9-py3-none-any.whl", hash = "sha256:15b59774f6e4d908ab247b79c33ba6c9348b18947b727947b82c056ccbbfc3d2"},
-    {file = "camera4kivy-0.0.9.tar.gz", hash = "sha256:ed674c211aea3e1db46b745ac631e6c02d9ffe70df40bf6773c412f3e5a91d21"},
+    {file = "camera4kivy-0.1.0-py3-none-any.whl", hash = "sha256:7cfbaaf90876e4584eed49d902090c1c3e6362c249ba992f9b8a336d3d3ee440"},
+    {file = "camera4kivy-0.1.0.tar.gz", hash = "sha256:a26c1252c10b5815b3e7ec4d76087d58e7a24438be052e1fec46f6d2d820625b"},
 ]
 certifi = [
     {file = "certifi-2022.6.15-py3-none-any.whl", hash = "sha256:fe86415d55e84719d75f8b69414f6438ac3547d2078ab91b67e779ef69378412"},
@@ -1040,8 +1040,8 @@ gast = [
     {file = "gast-0.4.0.tar.gz", hash = "sha256:40feb7b8b8434785585ab224d1568b857edb18297e5a3047f1ba012bc83b42c1"},
 ]
 gestures4kivy = [
-    {file = "gestures4kivy-0.0.7-py3-none-any.whl", hash = "sha256:bbf65488c5871310f2492a16c80ca333e1d803ba13fd524083bbdb140bdc563b"},
-    {file = "gestures4kivy-0.0.7.tar.gz", hash = "sha256:0e47546f2690c5774e73078580de081efeaaf5a0da362f6c023fc5ebd572b2dd"},
+    {file = "gestures4kivy-0.1.0-py3-none-any.whl", hash = "sha256:1a20de58d4a515c546adbd8f9d386a23511755888cb36e6a6496d02581483d42"},
+    {file = "gestures4kivy-0.1.0.tar.gz", hash = "sha256:59b555f7a3cc4c83438e5ee924eeba9eb1eaf15e9328a2336af45b860cc2c022"},
 ]
 google-auth = [
     {file = "google-auth-2.11.0.tar.gz", hash = "sha256:ed65ecf9f681832298e29328e1ef0a3676e3732b2e56f41532d45f70a22de0fb"},
