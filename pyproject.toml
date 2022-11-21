@@ -20,7 +20,7 @@ tellopy = { git = "https://github.com/hanyazou/TelloPy", rev = "develop-0.7.0" }
 
 # AI
 opencv-python = "^4.6.0.66"
-tensorflow-gpu = "^2.10.0"
+tensorflow-gpu = "^2.11.0"
 
 # Misc
 plyer = "^2.1.0" # Cross-platform utilities
