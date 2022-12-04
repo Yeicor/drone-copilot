@@ -38,6 +38,6 @@ if __name__ == '__main__':
 
     # ===> Test object detection from webcam <===
     #
-    from autopilot.detector.webcamdetector import WebcamDetectorApp
-    #
+    from autopilot.detector.webcam import WebcamDetectorApp
+
     WebcamDetectorApp().run()

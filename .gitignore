@@ -6,6 +6,9 @@
 /venv/
 /.venv/
 
+# Downloaded models
+/src/.models/
+
 # Builds
 # - Android
 /.buildozer/
