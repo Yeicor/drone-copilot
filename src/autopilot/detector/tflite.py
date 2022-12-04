@@ -19,16 +19,17 @@
 
 """A module to run object detection with a TensorFlow Lite model."""
 import abc
+import typing
 import zipfile
 from typing import List, NamedTuple, Optional
 
 import cv2
 import numpy as np
-import plyer
 from kivy import Logger
 from kivy.utils import platform
 
 from autopilot.detector.api import Detection, Category, Rect
+from util.download import download_or_cache
 
 # pylint: disable=g-import-not-at-top
 try:
@@ -86,8 +87,7 @@ class TFLiteDetector:
 
         # Download the model if it's a remote URL.
         if model_path.startswith('http'):
-            model_path = tf.keras.utils.get_file(origin=model_path, cache_subdir='.models',
-                                                 cache_dir=plyer.storagepath.get_application_dir())
+            model_path = download_or_cache(url=model_path)
 
         # Load label list from metadata.
         try:
@@ -116,14 +116,14 @@ class TFLiteDetector:
 
         self._interpreter.allocate_tensors()
 
-        self.input_size, self._is_quantized_input = self._on_load_model(self._interpreter)
-        Logger.info('TFLiteDetector: input_size: %s' % str(self.input_size))
+        self.input_size, self._dtype = self._on_load_model(self._interpreter)
+        Logger.info('TFLiteDetector: input_size: %s, dtype: %s' % (str(self.input_size), self._dtype))
 
     @abc.abstractmethod
-    def _on_load_model(self, interpreter: Interpreter) -> ((int, int), bool):
+    def _on_load_model(self, interpreter: Interpreter) -> ((int, int), typing.Any):
         """A hook to be called when the model is loaded. Returns the input size of the model."""
         input_detail = interpreter.get_input_details()[0]
-        return (input_detail['shape'][2], input_detail['shape'][1]), input_detail['dtype'] == np.uint8
+        return (input_detail['shape'][2], input_detail['shape'][1]), input_detail['dtype']
 
     def detect(self, img: np.ndarray, min_confidence: float = 0.5, max_results: int = -1) -> List[Detection]:
         image_height, image_width, _ = img.shape
@@ -150,9 +150,12 @@ class TFLiteDetector:
         else:
             preprocessed = cv2.resize(input_image, self.input_size)
 
-        # Normalize the input if it's a float model (aka. not quantized)
-        if not self._is_quantized_input:
+        if self._dtype == np.float32 and preprocessed.dtype == np.uint8:
             preprocessed = (np.float32(preprocessed) - 127.5) / 127.5  # uint8 --> float32 [0, 1]
+        elif self._dtype == np.uint8 and preprocessed.dtype == np.float32:
+            preprocessed = (preprocessed * 127.5 + 127.5).astype(np.uint8)  # float32 [0, 1] --> uint8
+        elif self._dtype != preprocessed.dtype:
+            raise ValueError('The dtype of the input image is not supported by the model.')
 
         return preprocessed
 

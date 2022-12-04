@@ -6,8 +6,8 @@
 /venv/
 /.venv/
 
-# Downloaded models
-/src/.models/
+# Program cache
+/src/util/.cache
 
 # Builds
 # - Android

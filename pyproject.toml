@@ -22,6 +22,9 @@ tellopy = { git = "https://github.com/hanyazou/TelloPy", rev = "develop-0.7.0" }
 opencv-python = "^4.6.0.66"
 tensorflow-gpu = "^2.11.0"
 
+# Network
+requests = "^2.28.1"
+
 # Misc
 plyer = "^2.1.0" # Cross-platform utilities
 ffpyplayer = "^4.3.5" # Video player
