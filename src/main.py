@@ -1,4 +1,4 @@
-__version__ = '0.4.0'
+__version__ = '0.0.0+models'
 
 if __name__ == '__main__':
     import os
