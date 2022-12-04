@@ -128,16 +128,21 @@ jobs:
           # Mac OS x86_64  # TODO
           - os: macos-latest
             deps: |
-              brew install python3
+              # Complete installation by adding poetry to the path
+              echo "/Users/runner/.local/bin" >> $GITHUB_PATH
+              poetry --version
+              # Install dependencies
               brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer
           # Windows x86_64
           - os: windows-latest
             deps: |
               # Complete installation by adding poetry to the path
               echo "C:\Users\runneradmin\AppData\Roaming\Python\Scripts" >> $GITHUB_PATH
+              poetry --version
               # Remove GPU support for tensorflow
               cat pyproject.toml | sed -E "s/^tensorflow-gpu.*/tensorflow = \"^2.0.0\"/" >pyproject.toml.tmp
               mv pyproject.toml.tmp pyproject.toml
+              rm poetry.lock
     steps:
       - name: Checkout
         uses: actions/checkout@v3
