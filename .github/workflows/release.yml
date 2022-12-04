@@ -199,7 +199,7 @@ jobs:
         run: |
           poetry run python -m PyInstaller pyinstaller.spec
           # Better output names
-          mv dist/drone-copilot dist/drone-copilot-$(uname -o -m | tr ' /' '-' | tr '[:upper:]' '[:lower:]') || true
+          mv dist/drone-copilot dist/drone-copilot-$(uname -s -m | tr ' /' '-' | tr '[:upper:]' '[:lower:]') || true
 
       - name: Publish the build
         uses: softprops/action-gh-release@v1
