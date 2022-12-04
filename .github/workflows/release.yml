@@ -136,7 +136,6 @@ jobs:
               brew list | grep python
               brew uninstall --ignore-dependencies python@3.11 python@3.8
               brew list | grep python
-              brew switch python 3.10 # 3.11 is still not supported
               # Install dependencies
               brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer
           # Windows x86_64
