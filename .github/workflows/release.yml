@@ -131,7 +131,11 @@ jobs:
               # Complete installation by adding poetry to the path
               echo "/Users/runner/.local/bin" >> $GITHUB_PATH
               # Install dependencies
+              brew list | grep python
+              brew uninstall python@3.11
+              brew list | grep python
               brew install python@3.10
+              brew list | grep python
               brew switch python 3.10 # 3.11 is still not supported
               brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer
           # Windows x86_64
