@@ -69,8 +69,6 @@ jobs:
       - name: Install system dependencies (ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt update
-          sudo apt install -y libunwind-dev  # Ubuntu 22.04 needs this 
           sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev \
           libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
           # Enable ALL architectures for android builds
@@ -120,21 +118,25 @@ jobs:
           # Linux x86_64
           - os: ubuntu-latest
             deps: |
+              sudo apt update
+              sudo apt install -y libunwind-dev  # Ubuntu 22.04 needs this for the next line to work
               sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev \
               libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0 gstreamer1.0-plugins-base \
               gstreamer1.0-plugins-good libmtdev-dev xvfb upx
               echo "DISPLAY=:99.0" >> $GITHUB_ENV
               Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
           # Mac OS x86_64  # TODO
-          #- os: macos-latest
-          #  deps: ''
+          - os: macos-latest
+            deps: |
+              brew install python3
+              brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer
           # Windows x86_64
           - os: windows-latest
             deps: |
               # Complete installation by adding poetry to the path
               echo "C:\Users\runneradmin\AppData\Roaming\Python\Scripts" >> $GITHUB_PATH
               # Remove GPU support for tensorflow
-              cat pyproject.toml | sed -E "s/^tensorflow-gpu.*/tensorflow = "^2.10.0"/" >pyproject.toml.tmp
+              cat pyproject.toml | sed -E "s/^tensorflow-gpu.*/tensorflow = \"^2.11.0\"/" >pyproject.toml.tmp
               mv pyproject.toml.tmp pyproject.toml
     steps:
       - name: Checkout
