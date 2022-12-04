@@ -26,7 +26,7 @@ source.exclude_dirs = drone/test/renderer3d/.cache
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
-source.exclude_patterns = autopilot.object_detection/efficient*.tflite
+#source.exclude_patterns = autopilot.detector/efficient*.tflite
 
 # (str) Application versioning (method 1)
 #version = 0.1
@@ -307,7 +307,7 @@ android.allow_backup = True
 p4a.local_recipes = buildozer-recipes/
 
 # (str) Filename to the hook for p4a
-#p4a.hook = camerax_provider/gradle_options.py
+p4a.hook = buildozer-recipes/camerax_provider/gradle_options.py
 
 # (str) Bootstrap to use for android builds
 #p4a.bootstrap = sdl2

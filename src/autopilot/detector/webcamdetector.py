@@ -1,46 +1,41 @@
-# This example demonstrates Object Detection using Tensorflow Lite
-# It is based on:
-# https://github.com/tensorflow/examples/tree/master/lite/examples/object_detection
-#
-# cv2 references this file and autopilot.object_detection/object_detector.py from
-# example above replaced with 'self.auto_analyze_resolution'
+"""Test new object detectors directly using your webcam for development."""
 
 import time
 
 import numpy as np
 from camera4kivy import Preview
+from kivy.app import App
 from kivy.clock import mainthread
 from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Line, Rectangle
 from kivy.metrics import dp, sp
 from kivy.utils import platform
 
-from .object_detector import ObjectDetector
-from .object_detector import ObjectDetectorOptions
 
-
-class ClassifyObject(Preview):
-
+class WebcamDetectorApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        from autopilot.detector.tflite.tflite import TFLiteDetector
+        self.preview = WebcamDetector(TFLiteDetector())
+
+    def build(self):
+        return self.preview
+
+    def on_start(self):
+        self.preview.connect_camera(enable_analyze_pixels=True)
+
+    def on_stop(self):
+        self.preview.disconnect_camera()
+
+
+class WebcamDetector(Preview):
+    def __init__(self, detector, **kwargs):
+        super().__init__(**kwargs)
+        self.detector = detector
         self.classified = []
-        num_threads = 4
-        enable_edgetpu = False  ## Change this for Coral Accererator
-        if platform == 'android':
-            model = 'autopilot.object_detection/model.tflite'
-        elif enable_edgetpu:
-            model = 'autopilot.object_detection/efficientdet_lite0_edgetpu.tflite'
-        else:
-            model = 'autopilot.object_detection/efficientdet_lite0.tflite'
-        options = ObjectDetectorOptions(
-            num_threads=4,
-            score_threshold=0.5,
-            max_results=3,
-            enable_edgetpu=enable_edgetpu)
-        self.detector = ObjectDetector(model_path=model, options=options)
-        # Get the required analyze resolution from the detector, a 2 ele list.
-        # as a concequence, scale will be a 2 ele list
-        self.auto_analyze_resolution = self.detector._input_size
+        # Get the required analyze resolution from the detector, a 2 element list.
+        # as a consequence, scale will be a 2 element list
+        self.auto_analyze_resolution = self.detector.input_size
         self.start_time = time.time()
 
     ####################################
@@ -53,7 +48,7 @@ class ClassifyObject(Preview):
         rgba = np.fromstring(pixels, np.uint8).reshape((image_size[1], image_size[0], 4))
         rgb = rgba[:, :, :3]
         # detect
-        detections = self.detector.detect(rgb)
+        detections = self.detector.webcam(rgb)
         now = time.time()
         fps = 0
         if now - self.start_time:
@@ -80,10 +75,10 @@ class ClassifyObject(Preview):
             h = round(h * image_scale[1])
 
             # Category text for canvas
-            category = detection.categories[0]
+            category = detection.category
             class_name = category.label
-            probability = round(category.score, 2)
-            result_text = class_name + ' (Prob: {:.2f})'.format(probability)
+            probability = round(detection.confidence, 2)
+            result_text = class_name + ' [{:.2f}]'.format(probability)
             label = CoreLabel(font_size=sp(20))
             label.text = result_text
             label.refresh()

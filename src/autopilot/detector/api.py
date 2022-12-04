@@ -1,0 +1,67 @@
+"""This is the API that any object detector shares"""
+
+import abc
+from dataclasses import dataclass
+from typing import List
+
+import numpy as np
+
+
+@dataclass
+class Rect:
+    """A rectangle in 2D space."""
+
+    left: float
+    """The horizontal start in the range [0, 1], relative of the input size"""
+
+    top: float
+    """The vertical start in the range [0, 1], relative of the input size"""
+
+    right: float
+    """The horizontal end in the range [0, 1], relative of the input size"""
+
+    bottom: float
+    """The vertical end in the range [0, 1], relative of the input size"""
+
+
+@dataclass
+class Category:
+    """A result of a classification task."""
+
+    id: int
+    """The unique ID of the category"""
+
+    label: str
+    """The display name of the category"""
+
+
+@dataclass
+class Detection:
+    """A detected object in an image."""
+
+    bounding_box: Rect
+    """The bounding box of the detection (smallest rect that contains the detection)"""
+
+    confidence: float
+    """The confidence of the detection, see `categories` for classification confidence"""
+
+    category: Category
+    """The category of the found object. It may return always the same category"""
+
+    # TODO: segmentations, features/key points and other kinds of detection metadata
+
+
+class Detector(abc.ABC):
+    """An object detector API that looks for matches in a single image."""
+
+    @abc.abstractmethod
+    def detect(self, img: np.ndarray, min_confidence: float = 0.5, max_results: int = -1) -> List[Detection]:
+        """
+        :param img: the image where the detector should run in the format [height, width, channels(3)].
+            Note that the implementation will resize and crop the image if required.
+            It should also adapt the data type, assuming floats to be in the range 0-1.
+        :param min_confidence: the minimum confidence required to return a detection.
+        :param max_results: the maximum number of top-scored detection results to return, or -1 for all of them.
+        :return: the list of matches found, SORTED by descending detection confidence.
+        """
+        pass

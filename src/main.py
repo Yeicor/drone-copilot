@@ -1,4 +1,4 @@
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 
 if __name__ == '__main__':
     import os
@@ -6,8 +6,6 @@ if __name__ == '__main__':
 
     from kivy.resources import resource_add_path
     from kivy.utils import platform
-
-    from ui.app import DroneCopilotApp
 
     if platform != 'android' and platform != 'ios':
         from kivy.config import Config
@@ -26,5 +24,20 @@ if __name__ == '__main__':
         _ignore2 = MyJoystick
         _ignore3 = ShadowLabel
 
-    DroneCopilotApp().run()  # The main app
-    # Renderer3DTestApp().run()  # Test rendering a virtual 3D scene
+    # ===> Start the App <===
+    #
+    # from ui.app import DroneCopilotApp
+    #
+    # DroneCopilotApp().run()  # The main app
+
+    # ===> Test rendering a virtual 3D scene <===
+    #
+    # from drone.app import DroneCopilotApp
+    #
+    # Renderer3DTestApp().run()
+
+    # ===> Test object detection from webcam <===
+    #
+    from autopilot.detector.webcamdetector import WebcamDetectorApp
+    #
+    WebcamDetectorApp().run()
