@@ -35,7 +35,7 @@ jobs:
           fi
 
   build-mobile:
-    name: Builds for mobile
+    name: Build mobile
     runs-on: '${{ matrix.os }}'
     needs:
       - update-version
@@ -107,7 +107,7 @@ jobs:
 
 
   build-desktop:
-    name: Builds for desktop
+    name: Build desktop
     runs-on: '${{ matrix.os }}'
     needs:
       - update-version
@@ -125,7 +125,7 @@ jobs:
               gstreamer1.0-plugins-good libmtdev-dev xvfb upx
               echo "DISPLAY=:99.0" >> $GITHUB_ENV
               Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-          # Mac OS x86_64  # TODO
+          # Mac OS x86_64
           - os: macos-latest
             deps: |
               # Complete installation by adding poetry to the path
@@ -141,6 +141,10 @@ jobs:
               curl -sSL https://install.python-poetry.org | python3 -
               # Install dependencies
               brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer
+              # Remove GPU support for tensorflow (doesn't find installation candidates)
+              cat pyproject.toml | sed -E "s/^tensorflow-gpu.*/tensorflow-macos = \"^2.10.0\"/" >pyproject.toml.tmp
+              mv pyproject.toml.tmp pyproject.toml
+              rm poetry.lock  # HACK: Mac OS may require a different dependency tree
           # Windows x86_64
           - os: windows-latest
             deps: |
