@@ -131,6 +131,8 @@ jobs:
               # Complete installation by adding poetry to the path
               echo "/Users/runner/.local/bin" >> $GITHUB_PATH
               # Install dependencies
+              brew install python@3.10
+              brew switch python 3.10 # 3.11 is still not supported
               brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer
           # Windows x86_64
           - os: windows-latest
@@ -138,9 +140,9 @@ jobs:
               # Complete installation by adding poetry to the path
               echo "C:\Users\runneradmin\AppData\Roaming\Python\Scripts" >> $GITHUB_PATH
               # Remove GPU support for tensorflow
-              cat pyproject.toml | sed -E "s/^tensorflow-gpu.*/tensorflow = \"^2.0.0\"/" >pyproject.toml.tmp
-              mv pyproject.toml.tmp pyproject.toml
-              rm poetry.lock
+              #cat pyproject.toml | sed -E "s/^tensorflow-gpu.*/tensorflow = \"^2.0.0\"/" >pyproject.toml.tmp
+              #mv pyproject.toml.tmp pyproject.toml
+              rm poetry.lock  # HACK: Windows may require a different dependency tree
     steps:
       - name: Checkout
         uses: actions/checkout@v3
