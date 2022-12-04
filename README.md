@@ -2,7 +2,7 @@
 
 ## Features
 
-- [x] Cross-platform: mobile for accessibility (Android, iOS) and desktop for performance (Linux, Windows, MacOS).
+- [x] Cross-platform: mobile for accessibility (Android, iOS<sup>1</sup>) and desktop for performance (Linux, Windows<sup>1</sup>, MacOS<sup>1</sup>).
 - [x] Live video and status of the drone (and high-resolution pictures).
 - [x] Manual control of the drone on all platforms (UI joysticks / keyboard / gamepad).
 - [x] A common drone interface to provide most features for multiple drones:
@@ -11,6 +11,8 @@
     - [x] Add support for your drone simply by implementing [the core API](src/drone/api).
 - [ ] Autopilot [...].
 - [ ] Simultaneous Localization And Mapping (SLAM) [...].
+
+<sup>1</sup> Not tested, minor modifications may be required (help is appreciated).
 
 ## Building
 

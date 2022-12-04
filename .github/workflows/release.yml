@@ -142,7 +142,7 @@ jobs:
               # Install dependencies
               brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer
               # Remove GPU support for tensorflow (doesn't find installation candidates)
-              cat pyproject.toml | sed -E "s/^tensorflow-gpu.*/tensorflow-macos = \"^2.10.0\"/" >pyproject.toml.tmp
+              cat pyproject.toml | sed -E "s/^tensorflow-gpu.*/tensorflow = \"^2.10.0\"/" >pyproject.toml.tmp
               mv pyproject.toml.tmp pyproject.toml
               rm poetry.lock  # HACK: Mac OS may require a different dependency tree
           # Windows x86_64
