@@ -1,8 +1,8 @@
 import numpy as np
 from kivy.clock import mainthread
+from kivy.core.text import Label as CoreLabel
 from kivy.graphics.texture import Texture
 from kivy.uix.image import Image
-from kivy.core.text import Label as CoreLabel
 
 
 class MyVideo(Image):
@@ -31,9 +31,30 @@ class MyVideo(Image):
         :param frame: the image to update the texture with, as a numpy.ndarray of (width, height, 3) in RGB format.
         """
         # Update the texture with the vertically-flipped next frame and ask to be redrawn
-        new_size = tuple(frame.shape[0:2])
+        new_size = tuple(frame.shape[:2])
         if not self.texture or self.texture.size != new_size:  # Create a new texture only if the size changed
-            self.texture = Texture.create(size=new_size, colorfmt='rgb')
+            self.texture = Texture.create(size=new_size, colorfmt='rgb', bufferfmt='ubyte', mipmap=False)
             self.texture.flip_vertical()
-        self.texture.blit_buffer(np.ravel(frame), colorfmt='rgb', bufferfmt='ubyte', mipmap_generation=False)
+        self.texture.blit_buffer(frame.flatten(), colorfmt='rgb', bufferfmt='ubyte', mipmap_generation=False)
         self.canvas.ask_update()
+
+    def get_screen_bounds(self) -> (int, int, int, int):
+        """Gets the bounds of the rendered texture in the window, in pixels.
+
+        It takes into account the aspect ratio of the video feed and the widget.
+        """
+        tw, th = self.texture.size
+        sw, sh = self.size
+        if tw * sh > th * sw:
+            # The texture is wider than the widget
+            w = sw
+            h = w * th / tw
+            x = 0
+            y = (sh - h) / 2
+        else:
+            # The texture is taller than (or equal to) the widget
+            h = sh
+            w = h * tw / th
+            y = 0
+            x = (sw - w) / 2
+        return int(x), int(y), int(w), int(h)

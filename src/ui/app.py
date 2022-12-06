@@ -176,6 +176,12 @@ class DroneCopilotApp(App):
 
     def on_drone_video_frame(self, frame: np.ndarray):
         self.root.ids.video.update_texture(frame)
+        if self.root.ids.follower.is_running():  # Also update the follower's frame, if it's running
+            # AI algorithms actually want the image in height x width x channels format, not width x height x channels
+            # TODO: why is this needed???! (test-only?)
+            width, height, channels = frame.shape
+            reshape = frame.ravel(order='K').reshape((height, width, channels))
+            self.root.ids.follower.feed(reshape)
 
     def on_drone_photo(self, frame: np.ndarray):
         Logger.info('DroneCopilotApp: received photo frame')
@@ -184,6 +190,8 @@ class DroneCopilotApp(App):
     def on_stop(self):
         if self.listen_status_stop:
             self.listen_status_stop()
+        if self.root.ids.follower.is_running():
+            self.root.ids.follower.stop()
         if self.listen_video_stop:
             self.listen_video_stop()
         if self.drone:
@@ -237,6 +245,9 @@ class DroneCopilotApp(App):
         # Manage takeoff/land shortcut
         if just_pressed and key == Keyboard.keycodes['spacebar']:
             self.action_takeoff_land()
+        # Manage tracking shortcut
+        if just_pressed and key == Keyboard.keycodes['t']:
+            self.action_toggle_tracking()
         # Manage right panel shortcuts
         if just_pressed and key == Keyboard.keycodes['p']:
             self.action_take_photo()
@@ -312,8 +323,24 @@ class DroneCopilotApp(App):
         else:
             Logger.error('DroneCopilotApp: takeoff/land: no drone connected')
 
-    def action_toggle_tracking(self):
-        Logger.warn('DroneCopilotApp: action_toggle_tracking not implemented yet')
+    def action_toggle_tracking(self, set_enabled: Optional[bool] = None):
+        # Logger.debug('DroneCopilotApp: action_toggle_tracking: {}'.format(set_enabled))
+
+        # Check if tracking is enabled
+        was_enabled = self.root.ids.follower.is_running()
+        if set_enabled is None:
+            set_enabled = not was_enabled
+        elif set_enabled == was_enabled:
+            return  # Nothing to do
+
+        # Actually start/stop the tracking
+        if set_enabled:
+            self.root.ids.follower.start()
+        else:
+            self.root.ids.follower.stop()
+
+        # Update the UI
+        self.root.ids.tracking_button.text = 'Tracking (enabled)' if set_enabled else 'Tracking (disabled)'
 
     def action_take_photo(self):
         # Logger.debug('DroneCopilotApp: action_take_photo')

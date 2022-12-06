@@ -1,6 +1,7 @@
 #: kivy 2.1.0
 #: import Settings kivy.uix.settings
 #: import MyVideo ui.video.video
+#: import DefaultFollower ui.video.follower
 #: import MyJoystick ui.util.joystick
 #: import ShadowLabel ui.util.shadow
 #: import ShadowButton ui.util.shadow
@@ -15,6 +16,17 @@ FloatLayout:
     # === BACKGROUND LIVE VIDEO STREAM ===
     MyVideo:
         id: video
+        DefaultFollower: # Follower overlay
+            id: follower
+            video: self.parent
+            size_hint: self.parent.size
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
 
     # === MAIN CENTER CONTROLS ===
     GridLayout:
@@ -73,7 +85,7 @@ FloatLayout:
                     allow_stretch: True
             ShadowButton:
                 id: tracking_button
-                text: 'Tracking (OFF)'
+                text: 'Tracking (disabled)'
                 on_press: app.action_toggle_tracking()
                 size_hint: 0.75, 0.25
             Button:
@@ -140,7 +152,6 @@ FloatLayout:
             ShadowLabel:
                 id: battery_label
                 text: '??%'  # TODO: Tooltips for most UI elements!
-                # TODO: Red for low!
                 font_size: self.parent.height * 0.5
         BoxLayout:
             ShadowImage:
@@ -149,8 +160,7 @@ FloatLayout:
                 allow_stretch: True
             ShadowLabel:
                 id: temperature_label
-                text: '??ºC'
-                # TODO: Red for high!
+                text: '??ºC' # TODO: Red for high! (apply to other properties too)
                 font_size: self.parent.height * 0.5
         BoxLayout:
             ShadowImage:
@@ -160,7 +170,6 @@ FloatLayout:
             ShadowLabel:
                 id: signal_label
                 text: '??%'
-                # TODO: Red for low!
                 font_size: self.parent.height * 0.5
         BoxLayout:
             ShadowImage:
@@ -170,7 +179,6 @@ FloatLayout:
             ShadowLabel:
                 id: height_label
                 text: '??m'
-                # TODO: Red for high!
                 font_size: self.parent.height * 0.5
         BoxLayout: # Just a spacer to move the buttons to the top
             size_hint: (None, 3)

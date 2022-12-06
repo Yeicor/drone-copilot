@@ -18,8 +18,8 @@ class MySceneRenderer(Renderer):
 
     def __init__(self, **kwargs):
         super().__init__(shader_file=os.path.join(os.path.dirname(__file__), 'default.glsl'), **kwargs)
-        self.set_clear_color((0.3, 0.5, 0.8, 1.0))
-        self.bind(size=self._adjust_aspect)
+        self.set_clear_color((0.3, 0.5, 0.8, 1.0))  # background color: sky blue
+        self.bind(size=self._adjust_aspect)  # adjust camera aspect ratio when window size changes
         self.scene = load_scene()  # will take a couple of seconds to load, it should be moved to another thread
         self.camera = PerspectiveCamera(75, 1, 0.01, 1000)
         self.queue_render_callback = None
@@ -29,7 +29,7 @@ class MySceneRenderer(Renderer):
     def _adjust_aspect(self, _inst, _val):
         aspect = self.size[0] / float(self.size[1])
         self.camera.aspect = aspect
-        # Logger.warn('Renderer: aspect ratio adjusted to %s (size changed to %s)' % (aspect, rsize))
+        Logger.warn('Renderer: aspect ratio adjusted to %s (size changed to %s)' % (aspect, self.size))
 
     @mainthread
     def queue_render(self, callback: Optional[Callable[[], None]] = None):
@@ -60,23 +60,11 @@ class MySceneRenderer(Renderer):
         """Reads the last rendered array. This may be a bit slow (because we are reading an OpenGL FBO to the CPU).
         :return: np.ndarray of RGB values (shape: (width, height, 3))
         """
-        pixels = self.fbo.texture.pixels
-        width, height = self.size
-        rgb_frame: np.ndarray = np.frombuffer(pixels, dtype=np.uint8).reshape((width, height, 4))
+        height, width = self.fbo.texture.height, self.fbo.texture.width
+        rgb_frame = np.frombuffer(self.fbo.texture.pixels, np.uint8)
+        rgb_frame = rgb_frame.reshape((height, width, 4))
         rgb_frame = rgb_frame[:, :, :3]  # RGBA -> RGB
-        rgb_frame = np.flip(rgb_frame, axis=0)  # flip the frame vertically
-        # Weird HACK: if resolution is not square, pixels are not aligned correctly
-        if width != height:
-            aspect_1 = width / height
-            min_size = min(width, height)
-            if height > width:
-                aspect_1 = 1 / aspect_1
-            if aspect_1 != int(aspect_1):  # FIXME: most resolutions are broken!
-                Logger.warn('Renderer: non-multiple width and height (those that don\'t validate '
-                            'width = n * height or height = n * width where n is an integer) are broken!')
-            else:
-                rgb_frame = rgb_frame.reshape((min_size, int(aspect_1), min_size, 3))
-                hacky_flip = rgb_frame[:, ::-1, :, :]
-                rgb_frame = hacky_flip.reshape((width, height, 3))
-
+        rgb_frame = rgb_frame[::-1, :, :]  # flip vertically
+        rgb_frame = np.transpose(rgb_frame, (1, 0, 2))  # Convert height x width x 3 to width x height x 3
+        rgb_frame = rgb_frame.ravel(order='K').reshape((width, height, 3))  # TODO: why is this needed???!
         return rgb_frame

@@ -18,12 +18,14 @@ if __name__ == '__main__':
         resource_add_path(os.path.join(sys._MEIPASS))
         # Help PyInstaller store dynamically loaded python modules
         from ui.video.video import MyVideo
+        from ui.video.follower import DefaultFollower
         from ui.util.joystick import MyJoystick
         from ui.util.shadow import *
 
         _ignore1 = MyVideo
-        _ignore2 = MyJoystick
-        _ignore3 = ShadowLabel
+        _ignore2 = DefaultFollower
+        _ignore3 = MyJoystick
+        _ignore4 = ShadowLabel
 
     # ===> Start the App <===
     #
@@ -39,6 +41,6 @@ if __name__ == '__main__':
 
     # ===> Test object detection from webcam <===
     #
-    # from autopilot.detector.webcam import WebcamDetectorApp
+    # from autopilot.follow.detector.webcam import WebcamDetectorApp
     #
     # WebcamDetectorApp().run()

@@ -10,7 +10,7 @@ from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Line, Rectangle
 from kivy.metrics import dp, sp
 
-from autopilot.detector.tflite import TFLiteEfficientDetDetector
+from autopilot.follow.detector.tflite import TFLiteEfficientDetDetector
 
 
 class WebcamDetectorApp(App):
@@ -57,10 +57,10 @@ class WebcamDetector(Preview):
         found = []
         for detection in detections:
             # Bounding box, pixels coordinates
-            x = detection.bounding_box.left
-            y = detection.bounding_box.top
-            w = detection.bounding_box.right - x
-            h = detection.bounding_box.bottom - y
+            x = detection.bounding_box.x_min
+            y = detection.bounding_box.y_max
+            w = detection.bounding_box.x_max - x
+            h = detection.bounding_box.y_min - y
 
             # Map tflite style coordinates to Kivy Preview coordinates
             y = max(image_size[1] - y - h, 0)

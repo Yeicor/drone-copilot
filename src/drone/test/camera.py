@@ -22,8 +22,8 @@ class TestCamera(Camera):
 
     def __init__(self) -> None:
         super().__init__()
-        self.resolutions_video = [(1000, 500)]
-        self.resolutions_photo = [(1000, 500)]
+        self.resolutions_video = [(640, 480)]
+        self.resolutions_photo = [(640, 480)]
 
     @mainthread
     def setup(self):

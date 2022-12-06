@@ -28,7 +28,7 @@ import numpy as np
 from kivy import Logger
 from kivy.utils import platform
 
-from autopilot.detector.api import Detection, Category, Rect
+from autopilot.follow.detector.api import Detector, Detection, Category, Rect
 from util.download import download_or_cache
 
 # pylint: disable=g-import-not-at-top
@@ -72,7 +72,28 @@ def libedgetpu_name():
     }.get(platform.system(), None)
 
 
-class TFLiteDetector:
+def resize_and_pad(img: np.ndarray, w: int, h: int) -> (np.ndarray, float, float, float, float):
+    """
+    Resize and pad (with gray) an image to a target size.
+    """
+    img_h, img_w = img.shape[:2]
+    scale = min(w / img_w, h / img_h)
+    resized = cv2.resize(img, (int(img_w * scale), int(img_h * scale)))
+    padded = np.full((h, w, 3), 128, dtype=np.uint8)
+    padded[:resized.shape[0], :resized.shape[1]] = resized
+    add_x, scale_x, add_y, scale_y = 0, 1, 0, 1  # Used to scale the bounding box back to the original image
+    if img_w > img_h:
+        scale_y = scale / (h / img_h)
+        add_y = (1 - scale_y) / 2
+    elif img_w < img_h:
+        scale_x = scale / (w / img_w)
+        add_x = (1 - scale_x) / 2
+    # Logger.info(f"resize_and_pad: {img_w}x{img_h} -> {resized.shape[1]}x{resized.shape[0]} -> {w}x{h}")
+    # Logger.info(f"resize_and_pad: add_x={add_x}, scale_x={scale_x}, add_y={add_y}, scale_y={scale_y}")
+    return padded, add_x, scale_x, add_y, scale_y
+
+
+class TFLiteDetector(Detector):
     """A wrapper class for a TFLite object detection model."""
 
     def __init__(self, model_path: str, labels: Optional[List[str]] = None,
@@ -126,10 +147,8 @@ class TFLiteDetector:
         return (input_detail['shape'][2], input_detail['shape'][1]), input_detail['dtype']
 
     def detect(self, img: np.ndarray, min_confidence: float = 0.5, max_results: int = -1) -> List[Detection]:
-        image_height, image_width, _ = img.shape
-
         # Prepare input tensor.
-        input_tensor = self._preprocess(img)
+        input_tensor, add_x, scale_x, add_y, scale_y = self._preprocess(img)
         self._set_input_tensor(input_tensor)
 
         # Run inference.
@@ -139,16 +158,19 @@ class TFLiteDetector:
         boxes, classes, scores, count = self._get_output_tensors()
 
         # Postprocess detections and return the result.
-        return self._postprocess(boxes, classes, scores, count, image_width, image_height, min_confidence, max_results)
+        return self._postprocess(boxes, classes, scores, count, min_confidence, max_results,
+                                 add_x, scale_x, add_y, scale_y)
 
-    def _preprocess(self, input_image: np.ndarray) -> np.ndarray:
+    def _preprocess(self, input_image: np.ndarray) -> (np.ndarray, float, float, float, float):
         """Preprocess the input image as required by the TFLite model."""
 
         # Resize the input (if needed)
+        add_x, scale_x, add_y, scale_y = 0, 1, 0, 1
         if input_image.shape[:2] == self.input_size:
             preprocessed = input_image
         else:
-            preprocessed = cv2.resize(input_image, self.input_size)
+            preprocessed, add_x, scale_x, add_y, scale_y = resize_and_pad(
+                input_image, self.input_size[0], self.input_size[1])
 
         if self._dtype == np.float32 and preprocessed.dtype == np.uint8:
             preprocessed = (np.float32(preprocessed) - 127.5) / 127.5  # uint8 --> float32 [0, 1]
@@ -157,7 +179,7 @@ class TFLiteDetector:
         elif self._dtype != preprocessed.dtype:
             raise ValueError('The dtype of the input image is not supported by the model.')
 
-        return preprocessed
+        return preprocessed, add_x, scale_x, add_y, scale_y
 
     def _set_input_tensor(self, image):
         """Sets the input tensor."""
@@ -178,16 +200,15 @@ class TFLiteDetector:
         """Returns the output tensors."""
         pass
 
-    def _postprocess(self, boxes: np.ndarray, classes: np.ndarray, scores: np.ndarray, count: int, image_width: int,
-                     image_height: int, min_confidence: float, max_results: int) -> List[Detection]:
+    def _postprocess(self, boxes: np.ndarray, classes: np.ndarray, scores: np.ndarray, count: int,
+                     min_confidence: float, max_results: int,
+                     add_x: float, scale_x: float, add_y: float, scale_y: float) -> List[Detection]:
         """Post-process the output of TFLite model into a list of Detection objects.
 
         :param boxes: Bounding boxes of detected objects from the TFLite model.
         :param classes: Class index of the detected objects from the TFLite model.
         :param scores: Confidence scores of the detected objects from the TFLite model.
         :param count: Number of detected objects from the TFLite model.
-        :param image_width: Width of the input image.
-        :param image_height: Height of the input image.
         :param min_confidence: Minimum confidence score of the detected objects.
         :param max_results: Maximum number of the detected objects.
 
@@ -199,11 +220,11 @@ class TFLiteDetector:
         for i in range(count):
             if scores[i] >= min_confidence:
                 y_min, x_min, y_max, x_max = boxes[i]
-                bounding_box = Rect(top=int(y_min * image_height), left=int(x_min * image_width),
-                                    bottom=int(y_max * image_height), right=int(x_max * image_width))
-                class_id = int(classes[i])
-                category = Category(label=self._label_list[class_id] if 0 <= class_id < len(self._label_list) else "",
-                                    id=class_id)
+                bounding_box = Rect(y_min=add_y + y_min * scale_y, x_min=add_x + x_min * scale_x,
+                                    y_max=add_y + y_max * scale_y, x_max=add_x + x_max * scale_x)
+                category_id = int(classes[i])
+                category_label = self._label_list[category_id] if 0 <= category_id < len(self._label_list) else ""
+                category = Category(label=category_label, id=category_id)
                 result = Detection(bounding_box=bounding_box, confidence=scores[i], category=category)
                 results.append(result)
 
