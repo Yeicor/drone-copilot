@@ -10,11 +10,12 @@ from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Line, Rectangle
 from kivy.metrics import dp, sp
 
+from autopilot.detector.tflite import TFLiteEfficientDetDetector
+
 
 class WebcamDetectorApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        from autopilot.detector.tflite import TFLiteEfficientDetDetector
         self.preview = WebcamDetector(TFLiteEfficientDetDetector())
 
     def build(self):

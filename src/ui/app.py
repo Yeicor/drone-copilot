@@ -312,6 +312,9 @@ class DroneCopilotApp(App):
         else:
             Logger.error('DroneCopilotApp: takeoff/land: no drone connected')
 
+    def action_toggle_tracking(self):
+        Logger.warn('DroneCopilotApp: action_toggle_tracking not implemented yet')
+
     def action_take_photo(self):
         # Logger.debug('DroneCopilotApp: action_take_photo')
         if self.drone_camera:
