@@ -86,19 +86,8 @@ jobs:
         run: poetry install --with build-mobile --without main
 
       - name: Build with Buildozer
-        continue-on-error: true  # See hack below
-        run: yes | poetry run buildozer ${{ matrix.buildozer_command }}
-
-      - name: 'HACK: fix buildozer build after first try' # TODO: Remove when https://github.com/kivy/python-for-android/commit/cdbee357d3425b53de75d60d1d1a9d21a2c4730b is released
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo sed -E -i "s/(openssl_prereq.pkg_config_location, env.*)/[\1]/" \
-          .buildozer/android/platform/python-for-android/pythonforandroid/recipes/hostpython3/__init__.py
-
-      - name: Build with Buildozer
-        if: matrix.os == 'ubuntu-latest'
         run: poetry run buildozer ${{ matrix.buildozer_command }}
-
+        
       - name: Publish the build
         uses: softprops/action-gh-release@v1
         with:
