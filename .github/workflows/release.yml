@@ -46,6 +46,16 @@ jobs:
           # Android
           - os: ubuntu-latest
             buildozer_command: android debug
+            arch: armeabi-v7a
+          - os: ubuntu-latest
+            buildozer_command: android debug
+            arch: arm64-v8a
+          - os: ubuntu-latest
+            buildozer_command: android debug
+            arch: x86
+          - os: ubuntu-latest
+            buildozer_command: android debug
+            arch: x86_64
           # iOS  # TODO
           #- os: macos-latest
           #  buildozer_command: ios debug
@@ -71,8 +81,8 @@ jobs:
         run: |
           sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev \
           libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-          # Enable ALL architectures for android builds
-          sed -E -i 's/^android.archs = .*$/android.archs = armeabi-v7a,arm64-v8a,x86,x86_64/g' buildozer.spec 
+          # Set the build architecture (android only)
+          sed -E -i 's/^android.archs = .*$/android.archs = ${{ matrix.arch }}/g' buildozer.spec 
 
       - name: Install system dependencies (macos)
         if: matrix.os == 'macos-latest'
@@ -87,7 +97,7 @@ jobs:
 
       - name: Build with Buildozer
         run: yes | poetry run buildozer ${{ matrix.buildozer_command }}
-        
+
       - name: Publish the build
         uses: softprops/action-gh-release@v1
         with:
