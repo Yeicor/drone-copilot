@@ -74,7 +74,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .buildozer
-          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-buildozer-${{ hashFiles('buildozer.spec') }}
+          key: ${{ runner.os }}-${{ matrix.arch }}-python-${{ steps.setup-python.outputs.python-version }}-buildozer-${{ hashFiles('buildozer.spec') }}
 
       - name: Install system dependencies (ubuntu)
         if: matrix.os == 'ubuntu-latest'
