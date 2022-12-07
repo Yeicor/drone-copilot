@@ -86,7 +86,7 @@ jobs:
         run: poetry install --with build-mobile --without main
 
       - name: Build with Buildozer
-        run: poetry run buildozer ${{ matrix.buildozer_command }}
+        run: yes | poetry run buildozer ${{ matrix.buildozer_command }}
         
       - name: Publish the build
         uses: softprops/action-gh-release@v1
