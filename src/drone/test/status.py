@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 from typing import Dict, List
 
@@ -23,7 +24,7 @@ class TestStatus(Status, EventDispatcher):
     _battery: float = 1.0
     _signal: float = 1.0
     _temp: float = 273.15 + 20.0
-    _position_attitude: LinearAngular = LinearAngular()
+    _position_attitude: LinearAngular = LinearAngular(angular=np.array([0, 0, math.pi]))
     _velocity: LinearAngular = LinearAngular()
 
     def start_updates(self):

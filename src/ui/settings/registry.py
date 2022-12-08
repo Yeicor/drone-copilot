@@ -2,33 +2,36 @@ import dataclasses
 import json
 from typing import Dict
 
-from .register import _settings_metadata
-
-if True:
-    # List of imports that automatically register settings:
+if True:  # List of imports that automatically register settings:
     from drone.registry import Drone
-    from .ui import SettingMetaNumeric
+    from ui.settings.ui import SettingMetaNumeric
 
     _ = Drone
     _ = SettingMetaNumeric
 
 
 # noinspection PyTypeChecker
-def get_settings_meta() -> str:
+def get_settings_meta() -> {str: str}:
     """
     :return: the complete list of settings metadata. Intended for the main app.
     """
-    list_of_lists = [[{"type": "title", "title": m[0]}] + [dataclasses.asdict(x) for x in m[3]]
-                     for m in _settings_metadata]
-    meta_list = [el for sublist in list_of_lists for el in sublist]
-    for el in meta_list:
-        if 'default' in el:
-            del el['default']
-    return json.dumps(meta_list)
+    from ui.settings.register import _settings_metadata
+    # Build the metadata.
+    dict_of_lists = {title: [{"type": "title", "title": section[0]}] + [dataclasses.asdict(x) for x in section[3]]
+                     for title, sections in _settings_metadata.items() for section in sections}
+    # Remove default values from the copied metadata dictionary.
+    for title, sections in dict_of_lists.items():
+        for section in sections:
+            if "default" in section:
+                del section["default"]
+    # Serialize the dictionary of lists to a JSON string.
+    meta_dict = {title: json.dumps(sublist) for title, sublist in dict_of_lists.items()}
+    return meta_dict
 
 
 def get_settings_defaults() -> Dict[str, Dict[str, any]]:
     """
     :return: the default values for all settings groups. Intended for the main app.
     """
-    return {m[1]: {m.key: m.default for m in m[3]} for m in _settings_metadata}
+    from ui.settings.register import _settings_metadata
+    return {v[1]: {v2.key: v2.default for v2 in v[3]} for title, m in _settings_metadata.items() for v in m}

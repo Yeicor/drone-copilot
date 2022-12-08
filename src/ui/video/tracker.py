@@ -11,13 +11,13 @@ from kivy.uix.widget import Widget
 
 from autopilot.follow.detector.api import Detection
 from autopilot.follow.detector.tflite import TFLiteEfficientDetDetector
-from autopilot.follow.tracker.api import Tracker
+from autopilot.follow.tracker.api import Tracker as TrackerAPI
 from autopilot.follow.tracker.simple import SimpleTrackerAny
 from ui.video.video import MyVideo
 
 
-class Follower(Widget):
-    """The UI of the follow API, letting a drone detect & track, locate in 3D space and follow objects.
+class Tracker(Widget):
+    """The UI of the tracker API, letting a drone detect & track, locate in 3D space and follow objects.
 
     It uses a background thread to actually run the algorithms.
 
@@ -26,7 +26,7 @@ class Follower(Widget):
     video: MyVideo = ObjectProperty(None, allownone=True)
     """The background video element, used to get the video feed and feed it to the follower."""
 
-    def __init__(self, tracker: Tracker, **kwargs):  # , depth_estimator: DepthEstimator
+    def __init__(self, tracker: TrackerAPI, **kwargs):  # , depth_estimator: DepthEstimator
         super().__init__(**kwargs)
         self._tracker = tracker
         # self._depth_estimator = depth_estimator
@@ -117,6 +117,7 @@ class Follower(Widget):
         Logger.info('Follower: Stopping...')
         self._feed(None)
         self._thread.join()
+        Clock.schedule_once(lambda dt: self.canvas.clear())  # Clear the canvas after the thread has stopped
 
     def run(self) -> None:
         """The background thread that runs the tracking algorithm."""
@@ -164,9 +165,8 @@ class Follower(Widget):
                 processing_time_l_stats = (0, 0)
 
 
-class DefaultFollower(Follower):
-    """The default implementation of the Follower class, which uses the default implementations of the tracking and depth
-    estimation algorithms."""
+class DefaultTracker(Tracker):
+    """An implementation of the Tracker class which selects default algorithms and configurations."""
 
     def __init__(self, **kwargs):
         super().__init__(SimpleTrackerAny(TFLiteEfficientDetDetector()), **kwargs)

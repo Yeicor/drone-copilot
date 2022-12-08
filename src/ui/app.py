@@ -17,6 +17,7 @@ from drone.api.status import Status
 from drone.registry import drone_connect_auto
 from ui.settings.registry import get_settings_meta, get_settings_defaults
 from ui.util.photo import save_image_to_pictures
+# noinspection PyUnresolvedReferences
 from util import androidhacks
 
 
@@ -32,12 +33,13 @@ class DroneCopilotApp(App):
         self.register_event_type('on_drone_video_frame')
         self.register_event_type('on_drone_photo')
         # Typing
-        self.drone: Optional[Drone] = None
-        self.listen_status_stop: Optional[Callable[[], None]] = None
-        self.status_last_battery: float = -1.0
-        self.listen_video_stop: Optional[Callable[[], None]] = None
-        self.drone_cameras: Optional[List[Camera]] = None
-        self.drone_camera: Optional[Camera] = None
+        self._drone: Optional[Drone] = None
+        self._listen_status_stop: Optional[Callable[[], None]] = None
+        self._status_last_battery: float = -1.0
+        self._listen_video_stop: Optional[Callable[[], None]] = None
+        self._drone_cameras: Optional[List[Camera]] = None
+        self._drone_camera: Optional[Camera] = None
+        self._my_app_settings: Optional[SettingsWithSpinner] = None  # Cached settings
 
     # ==================== "boilerplate" ====================
     def build(self):
@@ -55,7 +57,8 @@ class DroneCopilotApp(App):
             self.setup_monitor()
 
     def build_settings(self, settings):
-        settings.add_json_panel(self.title, self.config, data=get_settings_meta())
+        for title, data in get_settings_meta().items():
+            settings.add_json_panel(title, self.config, data=data)
 
     def build_config(self, config: ConfigParser):
         for k, v in get_settings_defaults().items():
@@ -132,21 +135,21 @@ class DroneCopilotApp(App):
         drone_connect_auto(self.config, on_connect_result)
 
     def on_drone_connected(self, drone: Drone):
-        self.drone = drone
+        self._drone = drone
         Logger.info('DroneCopilotApp: connected to drone!')
         # Update UI
         self.root.ids.takeoff_land_button.disabled = False
         self.root.ids.video.set_frame_text('Connecting to the drone\'s video feed...')
         # Listen for status events
-        self.listen_status_stop = self.drone.listen_status(lambda status: self.dispatch('on_drone_status', status))
+        self._listen_status_stop = self._drone.listen_status(lambda status: self.dispatch('on_drone_status', status))
         # Connect to video camera (if available)
-        self.drone_cameras = self.drone.cameras()
-        if len(self.drone_cameras) > 0:
-            self.drone_camera = self.drone_cameras[0]  # TODO: Configurable
+        self._drone_cameras = self._drone.cameras()
+        if len(self._drone_cameras) > 0:
+            self._drone_camera = self._drone_cameras[0]  # TODO: Configurable
             # TODO: Multi-camera views!
-            resolution = self.drone_camera.resolutions_video[0] if len(self.drone_camera.resolutions_video) > 0 else (
+            resolution = self._drone_camera.resolutions_video[0] if len(self._drone_camera.resolutions_video) > 0 else (
                 640, 480)  # TODO: Configurable
-            self.listen_video_stop = self.drone_camera.listen_video(
+            self._listen_video_stop = self._drone_camera.listen_video(
                 resolution, lambda frame: self.dispatch('on_drone_video_frame', frame))
         else:
             self.root.ids.video.set_frame_text('No video feed available for this drone, :(')
@@ -154,10 +157,10 @@ class DroneCopilotApp(App):
     def on_drone_status(self, drone_status: Status):
         # Logger.debug('DroneCopilotApp: STATUS: {}'.format(str(drone_status)))
         # BATTERY
-        if self.status_last_battery != drone_status.battery:
-            self.status_last_battery = drone_status.battery
-            self.root.ids.battery_label.text = '{}%'.format(int(self.status_last_battery * 100))
-            Logger.info('DroneCopilotApp: battery: {}%'.format(int(self.status_last_battery * 100)))
+        if self._status_last_battery != drone_status.battery:
+            self._status_last_battery = drone_status.battery
+            self.root.ids.battery_label.text = '{}%'.format(int(self._status_last_battery * 100))
+            Logger.info('DroneCopilotApp: battery: {}%'.format(int(self._status_last_battery * 100)))
         # TEMPERATURE
         if len(drone_status.temperatures) > 0:
             cur_max_temp_c = max(drone_status.temperatures.values()) - 273.15  # Kelvin to Celsius.
@@ -167,9 +170,9 @@ class DroneCopilotApp(App):
         # HEIGHT
         self.root.ids.height_label.text = '{:.2f}m'.format(drone_status.height)
         # ENABLED UI ELEMENTS AND CONTENTS
-        self.root.ids.joystick_left.disabled = not self.drone.status.flying
-        self.root.ids.joystick_right.disabled = not self.drone.status.flying
-        if self.drone.status.flying:
+        self.root.ids.joystick_left.disabled = not self._drone.status.flying
+        self.root.ids.joystick_right.disabled = not self._drone.status.flying
+        if self._drone.status.flying:
             self.root.ids.takeoff_land_button.text = 'Land'  # TODO: Icons?
         else:
             self.root.ids.takeoff_land_button.text = 'Takeoff'
@@ -188,21 +191,20 @@ class DroneCopilotApp(App):
         save_image_to_pictures(Image.fromarray(frame, 'RGB'), 'picture')
 
     def on_stop(self):
-        if self.listen_status_stop:
-            self.listen_status_stop()
+        if self._listen_status_stop:
+            self._listen_status_stop()
         if self.root.ids.follower.is_running():
             self.root.ids.follower.stop()
-        if self.listen_video_stop:
-            self.listen_video_stop()
-        if self.drone:
-            del self.drone
+        if self._listen_video_stop:
+            self._listen_video_stop()
+        if self._drone:
+            del self._drone
         Logger.info('DroneCopilotApp: destroyed')
 
     # ==================== KEYBOARD / GAMEPAD events (UI events are in the .kv file) ====================
     on_keyboard_already_pressed: Dict[int, bool] = {}
 
-    # noinspection PyUnusedLocal
-    def on_keyboard(self, window: any, key: int, scancode: int, codepoint: str, modifiers: List[any], down: bool):
+    def on_keyboard(self, _window: any, key: int, _scancode: int, _codepoint: str, _modifiers: List[any], down: bool):
         just_pressed = not self.on_keyboard_already_pressed.get(key, False) and down
         if down:
             self.on_keyboard_already_pressed[key] = True
@@ -257,7 +259,7 @@ class DroneCopilotApp(App):
         if just_pressed and key == Keyboard.keycodes['f11']:
             self.action_screenshot_app()
 
-    def on_gamepad_axis(self, window: any, gamepad: int, axis: int, value: int):
+    def on_gamepad_axis(self, _window: any, _gamepad: int, axis: int, value: int):
         # Logger.debug('DroneCopilotApp: on_gamepad_axis: {} -> {}'.format(axis, value))
         # NOTE: Only XBox 360 controller tested, use a virtual driver if the axis are not the same
         if axis == 0:  # Left stick X
@@ -269,8 +271,8 @@ class DroneCopilotApp(App):
         elif axis == 4:  # Right stick Y
             self.action_joysticks(None, None, None, -value / 32768)
 
-    def on_gamepad_press(self, window: any, gamepad: int, button: int, down: bool):
-        # Logger.debug('DroneCopilotApp: on_gamepad_press: {}, {}, {}'.format(gamepad, button, down))
+    def on_gamepad_press(self, _window: any, _gamepad: int, button: int, down: bool):
+        # Logger.debug('DroneCopilotApp: on_gamepad_press: {}, {}, {}'.format(_gamepad, button, down))
         if button == 3 and down:  # Y
             self.action_takeoff_land()
         elif button == 1 and down:  # B
@@ -282,7 +284,7 @@ class DroneCopilotApp(App):
         # Logger.debug('DroneCopilotApp: action_joysticks: {} {} {} {}'.format(
         #     joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y))
 
-        if self.drone and self.drone.status.flying:
+        if self._drone and self._drone.status.flying:
             # Update UI to show the current joystick values (only if they are enabled)
             if joystick_left_x is not None:
                 self.root.ids.joystick_left.force_pad_x_pos(joystick_left_x)
@@ -295,7 +297,7 @@ class DroneCopilotApp(App):
 
             # Actually apply them to the drone
             max_speed_m_per_s = 1.5  # TODO: Configurable
-            target_speed_to_update = self.drone.target_speed
+            target_speed_to_update = self._drone.target_speed
             if joystick_right_y is not None:
                 target_speed_to_update.linear_local_x = joystick_right_y * max_speed_m_per_s
             if joystick_right_x is not None:
@@ -305,7 +307,7 @@ class DroneCopilotApp(App):
             max_speed_angular = 0.5  # TODO: Configurable
             if joystick_left_x is not None:
                 target_speed_to_update.yaw = joystick_left_x * max_speed_angular
-            self.drone.target_speed = target_speed_to_update  # Actually update the target speed
+            self._drone.target_speed = target_speed_to_update  # Actually update the target speed
 
     def action_takeoff_land(self):
         def action_callback(taking_off: bool, success: bool):
@@ -313,13 +315,13 @@ class DroneCopilotApp(App):
                 taking_off, success))
 
         # Logger.debug('DroneCopilotApp: action_takeoff_land')
-        if self.drone:
-            if self.drone.status.flying:  # Land
-                self.drone.land(lambda success: action_callback(False, success))
+        if self._drone:
+            if self._drone.status.flying:  # Land
+                self._drone.land(lambda success: action_callback(False, success))
             else:  # Take off
                 self.root.ids.joystick_left.disabled = False  # Quickly (also automatic) allow control while taking off
                 self.root.ids.joystick_right.disabled = False
-                self.drone.takeoff(lambda success: action_callback(True, success))
+                self._drone.takeoff(lambda success: action_callback(True, success))
         else:
             Logger.error('DroneCopilotApp: takeoff/land: no drone connected')
 
@@ -344,19 +346,30 @@ class DroneCopilotApp(App):
 
     def action_take_photo(self):
         # Logger.debug('DroneCopilotApp: action_take_photo')
-        if self.drone_camera:
-            resolution = self.drone_camera.resolutions_photo[0] if len(self.drone_camera.resolutions_photo) > 0 else (
+        if self._drone_camera:
+            resolution = self._drone_camera.resolutions_photo[0] if len(self._drone_camera.resolutions_photo) > 0 else (
                 640, 480)  # TODO: Configurable
-            self.listen_video_stop = self.drone_camera.take_photo(
+            self._listen_video_stop = self._drone_camera.take_photo(
                 resolution, lambda frame: self.dispatch('on_drone_photo', frame))
         else:
             # TODO: Unsupported photo message
             Logger.error('DroneCopilotApp: unsupported photo request')
 
-    def action_toggle_settings(self):
+    def action_toggle_settings(self, force_show: bool = False, menu: Optional[str] = None):
         # Logger.debug('DroneCopilotApp: action_toggle_settings')
-        if not self.open_settings():
-            self.close_settings()
+        if not self._my_app_settings:
+            self._my_app_settings = self.create_settings()
+            self._my_app_settings.bind(on_close=lambda _ignore: self.action_toggle_settings())
+        if menu:  # HACK: Access internal properties to set the settings panel menu
+            self._my_app_settings.interface.menu.spinner.text = menu
+        if self.root.ids.right_panel_popup.size_hint_x == 0:  # Open the settings
+            self.root.ids.right_panel_popup.size_hint_x = 0.33  # TODO: Animation?
+            self.root.ids.right_panel_popup.add_widget(self._my_app_settings)
+        else:  # Close the settings
+            self.root.ids.right_panel_popup.remove_widget(self._my_app_settings)
+            self.root.ids.right_panel_popup.size_hint_x = 0
+            if force_show:
+                self.action_toggle_settings()  # Call it again to open it properly
 
     def action_screenshot_app(self):
         # HACK: Screenshot code as default can't customize the file path properly!

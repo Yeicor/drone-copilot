@@ -1,23 +1,27 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from ui.settings.settings import SettingMeta
 
-_settings_metadata: List[Tuple[str, str, int, List[SettingMeta]]] = []
+_settings_metadata: Dict[str, List[Tuple[str, str, int, List[SettingMeta]]]] = {}
 
 
-def register_settings_section_meta(section: str, priority: int, meta: List[SettingMeta], section_id=None):
+def register_settings_section_meta(title: str, section: str, priority: int, meta: List[SettingMeta], section_id=None):
     """
-    :param section: the section title of the setting.
+    :param title: the title of the settings section.
+    :param section: the subsection title.
     :param priority: the priority of the setting, lower is higher on the list.
     :param meta: the metadata for the setting.
     :param section_id: the id of the section, defaulting to lowercase `section`.
     """
+    if title not in _settings_metadata:
+        _settings_metadata[title] = []
+    # Insert the section into the list of sections for the given title.
     section_id = section_id or section.lower()
     for m in meta:
         m.section = section_id
         m.key = m.key or m.title.lower()
-    insert_at = binary_search([m[2] for m in _settings_metadata], 0, len(_settings_metadata), priority)
-    _settings_metadata.insert(insert_at, (section, section_id, priority, meta))
+    insert_at = binary_search([m[2] for m in _settings_metadata[title]], 0, len(_settings_metadata[title]), priority)
+    _settings_metadata[title].insert(insert_at, (section, section_id, priority, meta))
 
 
 def binary_search(s: List[any], p: int, q: int, find: any) -> int:

@@ -19,6 +19,7 @@ class MySceneRenderer(Renderer):
     def __init__(self, **kwargs):
         super().__init__(shader_file=os.path.join(os.path.dirname(__file__), 'default.glsl'), **kwargs)
         self.set_clear_color((0.3, 0.5, 0.8, 1.0))  # background color: sky blue
+        self.opacity = 0.0  # HACK: disable rendering of the widget to the screen, we only want to render to the FBO
         self.bind(size=self._adjust_aspect)  # adjust camera aspect ratio when window size changes
         self.scene = load_scene()  # will take a couple of seconds to load, it should be moved to another thread
         self.camera = PerspectiveCamera(75, 1, 0.01, 1000)
@@ -38,13 +39,10 @@ class MySceneRenderer(Renderer):
 
         :param callback: a callback to be called after the render is done, useful for reading the rendered array.
         """
+        # TODO: Move objects in the scene on each frame to test the tracking algorithm
         if self.queue_render_callback is None:  # Don't overload rendering if the device is not fast enough
             self.queue_render_callback = callback
             self.canvas.ask_update()  # Not forcing the render! Only rescaling does it.
-            if self.pos[0] % 2 == 0:  # force a rerender, the ugly way ;)
-                self.pos[0] += 1
-            else:
-                self.pos[0] -= 1
         else:
             Logger.warn('Renderer: render already queued, skipping to avoid freezes')
 

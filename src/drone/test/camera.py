@@ -17,7 +17,6 @@ def _convert_vector(ray_dir: np.ndarray, negate_z: bool = True) -> np.ndarray:
 
 
 class TestCamera(Camera):
-
     _renderer = MySceneRenderer()
 
     def __init__(self) -> None:
@@ -27,11 +26,9 @@ class TestCamera(Camera):
 
     @mainthread
     def setup(self):
-        # HACK: We need to render to the main app, but we do it offscreen to avoid showing it
-        self._renderer.pos_hint = {'x': 2, 'y': 0}
-        self._renderer.size_hint = (None, None)  # Size is set manually
-        # self._renderer.size = (1920, 1080)
-        App.get_running_app().root.add_widget(self._renderer)
+        # HACK: We need to render to the main app, so the test_camera_parent ID must be set
+        App.get_running_app().root.ids.test_camera_parent.size = self.resolutions_video[0]  # Size is set manually
+        App.get_running_app().root.ids.test_camera_parent.add_widget(self._renderer)
 
     def raycast(self, ray_origin: np.ndarray, ray_dir: np.ndarray) -> float:
         """Returns the distance to the closest object in the scene that collides with the given ray. -1 on no collision.
@@ -61,7 +58,6 @@ class TestCamera(Camera):
         self._render_frame(callback)
 
     def listen_video(self, resolution: (int, int), callback: Callable[[np.ndarray], None]) -> Callable[[], None]:
-        self._renderer.size = resolution if resolution[0] != 0 and resolution[1] != 0 else self.resolutions_video[0]
         # TODO: Optimize (share frames) for multiple video listeners!
         ev = Clock.schedule_interval(lambda dt: self._render_frame(callback), 1 / 30)  # 30 FPS for better performance
         return ev.cancel
