@@ -98,6 +98,12 @@ jobs:
       - name: Build with Buildozer
         run: yes | poetry run buildozer ${{ matrix.buildozer_command }}
 
+      - name: Rename android build
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          export VERSION="${GITHUB_REF##*/}"
+          mv bin/*.apk "bin/drone-copilot-android-${VERSION:1}-${{ matrix.arch }}.apk"
+
       - name: Publish the build
         uses: softprops/action-gh-release@v1
         with:
@@ -198,7 +204,8 @@ jobs:
         run: |
           poetry run python -m PyInstaller pyinstaller.spec
           # Better output names
-          mv dist/drone-copilot dist/drone-copilot-$(uname -s -m | tr ' /' '-' | tr '[:upper:]' '[:lower:]') || true
+          export VERSION="${GITHUB_REF##*/}"
+          mv dist/drone-copilot dist/drone-copilot-$VERSION-$(uname -s -m | tr ' /' '-' | tr '[:upper:]' '[:lower:]') || true
 
       - name: Publish the build
         uses: softprops/action-gh-release@v1
