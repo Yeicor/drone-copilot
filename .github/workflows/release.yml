@@ -102,7 +102,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           export VERSION="${GITHUB_REF##*/}"
-          mv bin/*.apk "bin/drone-copilot-android-${VERSION:1}-${{ matrix.arch }}.apk"
+          mv bin/*.apk "bin/drone-copilot-${VERSION:1}-android-${{ matrix.arch }}.apk"
 
       - name: Publish the build
         uses: softprops/action-gh-release@v1
