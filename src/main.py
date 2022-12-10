@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     if is_production_build:
         # By default, increase log level and remove debugging widgets in production builds (mobile is always production)
-        if Logger.getEffectiveLevel() == Logger.DEBUG:
+        if Logger.getEffectiveLevel() == 10:  # DEBUG
             Logger.setLevel('INFO')
 
     # ===> Start the App <===
