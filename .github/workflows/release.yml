@@ -205,7 +205,7 @@ jobs:
           poetry run python -m PyInstaller pyinstaller.spec
           # Better output names
           export VERSION="${GITHUB_REF##*/}"
-          mv dist/drone-copilot dist/drone-copilot-$VERSION-$(uname -s -m | tr ' /' '-' | tr '[:upper:]' '[:lower:]') || true
+          mv dist/drone-copilot "dist/drone-copilot-${VERSION:1}-$(uname -s -m | tr ' /' '-' | tr '[:upper:]' '[:lower:]')" || true
 
       - name: Publish the build
         uses: softprops/action-gh-release@v1
