@@ -34,31 +34,19 @@ jobs:
             exit 1
           fi
 
-  build-mobile:
-    name: Build mobile
-    runs-on: '${{ matrix.os }}'
+  build-android:
+    name: Build android
+    runs-on: ubuntu-latest
     needs:
       - update-version
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Android
-          - os: ubuntu-latest
-            buildozer_command: android debug
-            arch: armeabi-v7a
-          - os: ubuntu-latest
-            buildozer_command: android debug
-            arch: arm64-v8a
-          - os: ubuntu-latest
-            buildozer_command: android debug
-            arch: x86
-          - os: ubuntu-latest
-            buildozer_command: android debug
-            arch: x86_64
-          # iOS  # TODO
-          #- os: macos-latest
-          #  buildozer_command: ios debug
+          - arch: armeabi-v7a
+          - arch: arm64-v8a
+          - arch: x86
+          - arch: x86_64
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -76,40 +64,38 @@ jobs:
           path: .buildozer
           key: ${{ runner.os }}-${{ matrix.arch }}-python-${{ steps.setup-python.outputs.python-version }}-buildozer-${{ hashFiles('buildozer.spec') }}
 
-      - name: Install system dependencies (ubuntu)
-        if: matrix.os == 'ubuntu-latest'
+      - name: Install system dependencies
         run: |
           sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev \
           libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
           # Set the build architecture (android only)
           sed -E -i 's/^android.archs = .*$/android.archs = ${{ matrix.arch }}/g' buildozer.spec 
 
-      - name: Install system dependencies (macos)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer gstreamer autoconf automake
-          python3 -m pip install --upgrade kivy-ios
-          cat pyproject.toml | sed -E "s/^tensorflow-gpu.*/tensorflow-macos = "^2.10.0"/" >pyproject.toml.tmp
-          mv pyproject.toml.tmp pyproject.toml
-
       - name: Install python dependencies
         run: poetry install --with build-mobile --without main
 
       - name: Build with Buildozer
-        run: yes | poetry run buildozer ${{ matrix.buildozer_command }}
+        run: yes | poetry run buildozer android release
 
-      - name: Rename android build
-        if: matrix.os == 'ubuntu-latest'
+      - name: Sign and build apk  # TODO: Sign key as a GitHub secret
+        run: |
+          wget "https://github.com/google/bundletool/releases/download/1.13.1/bundletool-all-1.13.1.jar"
+          java -jar bundletool-all-1.13.1.jar build-apks --bundle=bin/*.aab --output=bin/release.apks --mode=universal
+          unzip bin/release.apks -d bin  # Extract the internal APK (universal.apk) from the APK set
+          rm release.apks
+
+      - name: Rename build
         run: |
           export VERSION="${GITHUB_REF##*/}"
-          mv bin/*.apk "bin/drone-copilot-${VERSION:1}-android-${{ matrix.arch }}.apk"
+          mv bin/universal.apk "bin/drone-copilot-${VERSION:1}-android-${{ matrix.arch }}.apk"
 
       - name: Publish the build
         uses: softprops/action-gh-release@v1
         with:
-          files: bin/*
+          files: bin/*.apk
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  # TODO: build-ios
 
   build-desktop:
     name: Build desktop
