@@ -26,7 +26,7 @@ source.exclude_dirs = drone/test/renderer3d/.cache
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
-#source.exclude_patterns = autopilot.follow.detector/efficient*.tflite
+#source.exclude_patterns =
 
 # (str) Application versioning (method 1)
 #version = 0.1

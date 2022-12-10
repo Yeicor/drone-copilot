@@ -10,7 +10,7 @@ from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Line, Rectangle
 from kivy.metrics import dp, sp
 
-from autopilot.follow.detector.tflite import TFLiteEfficientDetDetector
+from autopilot.tracking.detector.tflite import TFLiteEfficientDetDetector
 
 
 class WebcamDetectorApp(App):
@@ -35,7 +35,8 @@ class WebcamDetector(Preview):
         self.classified = []
         # Get the required analyze resolution from the detector, a 2 element list.
         # as a consequence, scale will be a 2 element list
-        self.auto_analyze_resolution = self.detector.input_size
+        # We are testing an unexpected scale here
+        self.auto_analyze_resolution = self.detector.input_size[0] + 100, self.detector.input_size[1] - 20
         self.start_time = time.time()
 
     ####################################
@@ -45,22 +46,17 @@ class WebcamDetector(Preview):
     def analyze_pixels_callback(self, pixels, image_size, image_pos,
                                 image_scale, mirror):
         # Convert pixels to numpy rgb
-        rgba = np.fromstring(pixels, np.uint8).reshape((image_size[1], image_size[0], 4))
+        rgba = np.frombuffer(pixels, np.uint8).reshape((image_size[1], image_size[0], 4))
         rgb = rgba[:, :, :3]
         # detect
         detections = self.detector.detect(rgb)
-        now = time.time()
-        fps = 0
-        if now - self.start_time:
-            fps = 1 / (now - self.start_time)
-        self.start_time = now
         found = []
         for detection in detections:
             # Bounding box, pixels coordinates
-            x = detection.bounding_box.x_min
-            y = detection.bounding_box.y_max
-            w = detection.bounding_box.x_max - x
-            h = detection.bounding_box.y_min - y
+            x = detection.bounding_box.x_min * image_size[0]
+            y = detection.bounding_box.y_max * image_size[1]
+            w = detection.bounding_box.x_max * image_size[0] - x
+            h = detection.bounding_box.y_min * image_size[1] - y
 
             # Map tflite style coordinates to Kivy Preview coordinates
             y = max(image_size[1] - y - h, 0)
@@ -105,3 +101,7 @@ class WebcamDetector(Preview):
             Rectangle(size=r['t'].size,
                       pos=[r['x'] + dp(10), r['y'] + dp(10)],
                       texture=r['t'])
+
+
+if __name__ == '__main__':
+    WebcamDetectorApp().run()

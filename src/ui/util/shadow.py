@@ -42,7 +42,6 @@ class ShadowButton(Button, ShadowLabel):
 
 
 class ShadowImage(Image):
-    """NOTE: Does not keep aspect ratio!
-    """
+    # TODO: Keep aspect ratio!
     shadow_scale = NumericProperty(1.025)
     shadow_tint = ListProperty([0, 0, 0, 1])

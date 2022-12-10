@@ -5,7 +5,7 @@ from typing import Optional, List
 
 import numpy as np
 
-from autopilot.follow.detector.api import Detection
+from autopilot.tracking.detector.api import Detection
 
 
 class Tracker(abc.ABC):
@@ -21,3 +21,5 @@ class Tracker(abc.ABC):
         :return: the tracked object or None if no object was detected. It also returns the list of all raw detections.
         """
         pass
+
+# TODO: Implement state of the art trackers and recovery strategies like matching the image with the previous detection

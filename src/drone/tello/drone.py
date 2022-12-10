@@ -45,7 +45,7 @@ class TelloDrone(Drone):
 
     @staticmethod
     def get_name() -> str:
-        return "Tello (native)"
+        return "DJI Tello"
 
     def __init__(self, tello: Tello):
         super().__init__()

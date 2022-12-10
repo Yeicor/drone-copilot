@@ -4,8 +4,8 @@ from typing import Optional, List
 
 import numpy as np
 
-from autopilot.follow.detector.api import Detection, Detector
-from autopilot.follow.tracker.api import Tracker
+from autopilot.tracking.detector.api import Detection, Detector
+from autopilot.tracking.tracker.api import Tracker
 
 
 class SimpleTracker(Tracker, ABC):

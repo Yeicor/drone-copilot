@@ -28,7 +28,7 @@ import numpy as np
 from kivy import Logger
 from kivy.utils import platform
 
-from autopilot.follow.detector.api import Detector, Detection, Category, Rect
+from autopilot.tracking.detector.api import Detector, Detection, Category, Rect
 from util.download import download_or_cache
 
 # pylint: disable=g-import-not-at-top
@@ -81,16 +81,16 @@ def resize_and_pad(img: np.ndarray, w: int, h: int) -> (np.ndarray, float, float
     resized = cv2.resize(img, (int(img_w * scale), int(img_h * scale)))
     padded = np.full((h, w, 3), 128, dtype=np.uint8)
     padded[:resized.shape[0], :resized.shape[1]] = resized
-    add_x, scale_x, add_y, scale_y = 0, 1, 0, 1  # Used to scale the bounding box back to the original image
+    added_x, scaled_x, added_y, scaled_y = 0, 1, 0, 1  # Used to scale the bounding box back to the original image
     if img_w > img_h:
-        scale_y = scale / (h / img_h)
-        add_y = (1 - scale_y) / 2
+        scaled_y = scale / (h / img_h)
+        # added_y = (1 - scaled_y) / 2  # Actually, the padded image is not centered, so we don't need this
     elif img_w < img_h:
-        scale_x = scale / (w / img_w)
-        add_x = (1 - scale_x) / 2
+        scaled_x = scale / (w / img_w)
+        # added_x = (1 - scaled_x) / 2  # Actually, the padded image is not centered, so we don't need this
     # Logger.info(f"resize_and_pad: {img_w}x{img_h} -> {resized.shape[1]}x{resized.shape[0]} -> {w}x{h}")
-    # Logger.info(f"resize_and_pad: add_x={add_x}, scale_x={scale_x}, add_y={add_y}, scale_y={scale_y}")
-    return padded, add_x, scale_x, add_y, scale_y
+    # Logger.info(f"resize_and_pad: added_x={added_x}, scaled_x={scaled_x}, added_y={added_y}, scaled_y={scaled_y}")
+    return padded, added_x, scaled_x, added_y, scaled_y
 
 
 class TFLiteDetector(Detector):
@@ -124,7 +124,7 @@ class TFLiteDetector(Detector):
             Logger.warn('No metadata found in the model, using the provided label list or no labels.')
             self._label_list = labels or []
 
-        Logger.info("TFLiteDetector: labels: %s" % self._label_list)
+        Logger.info("TFLiteDetector: model labels: %s" % self._label_list)
 
         # Initialize TFLite model.
         if options.enable_edgetpu:
@@ -165,11 +165,11 @@ class TFLiteDetector(Detector):
         """Preprocess the input image as required by the TFLite model."""
 
         # Resize the input (if needed)
-        add_x, scale_x, add_y, scale_y = 0, 1, 0, 1
+        added_x, scaled_x, added_y, scaled_y = 0, 1, 0, 1
         if input_image.shape[:2] == self.input_size:
             preprocessed = input_image
         else:
-            preprocessed, add_x, scale_x, add_y, scale_y = resize_and_pad(
+            preprocessed, added_x, scaled_x, added_y, scaled_y = resize_and_pad(
                 input_image, self.input_size[0], self.input_size[1])
 
         if self._dtype == np.float32 and preprocessed.dtype == np.uint8:
@@ -179,7 +179,7 @@ class TFLiteDetector(Detector):
         elif self._dtype != preprocessed.dtype:
             raise ValueError('The dtype of the input image is not supported by the model.')
 
-        return preprocessed, add_x, scale_x, add_y, scale_y
+        return preprocessed, added_x, scaled_x, added_y, scaled_y
 
     def _set_input_tensor(self, image):
         """Sets the input tensor."""
@@ -193,6 +193,7 @@ class TFLiteDetector(Detector):
         tensor = self._interpreter.get_tensor(index)
         # Remove batch dimension
         tensor = np.squeeze(tensor)
+
         return tensor
 
     @abc.abstractmethod
@@ -202,7 +203,7 @@ class TFLiteDetector(Detector):
 
     def _postprocess(self, boxes: np.ndarray, classes: np.ndarray, scores: np.ndarray, count: int,
                      min_confidence: float, max_results: int,
-                     add_x: float, scale_x: float, add_y: float, scale_y: float) -> List[Detection]:
+                     added_x: float, scaled_x: float, added_y: float, scaled_y: float) -> List[Detection]:
         """Post-process the output of TFLite model into a list of Detection objects.
 
         :param boxes: Bounding boxes of detected objects from the TFLite model.
@@ -220,8 +221,8 @@ class TFLiteDetector(Detector):
         for i in range(count):
             if scores[i] >= min_confidence:
                 y_min, x_min, y_max, x_max = boxes[i]
-                bounding_box = Rect(y_min=add_y + y_min * scale_y, x_min=add_x + x_min * scale_x,
-                                    y_max=add_y + y_max * scale_y, x_max=add_x + x_max * scale_x)
+                bounding_box = Rect(x_min=(x_min - added_x) / scaled_x, y_min=(y_min - added_y) / scaled_y,
+                                    x_max=(x_max - added_x) / scaled_x, y_max=(y_max - added_y) / scaled_y)
                 category_id = int(classes[i])
                 category_label = self._label_list[category_id] if 0 <= category_id < len(self._label_list) else ""
                 category = Category(label=category_label, id=category_id)

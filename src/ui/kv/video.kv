@@ -1,0 +1,13 @@
+#: kivy 2.1.0
+#: import MyVideo ui.video.video
+#: import DefaultTracker ui.video.tracker
+
+# This is the video player widget, including the tracker overlay.
+
+<MyVideo>:
+
+<DefaultTracker>:
+    id: tracker
+    pos: self.parent.pos
+    size: self.parent.size
+    video: self.parent  # Use it as a child (overlay) of MyVideo

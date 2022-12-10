@@ -57,4 +57,5 @@ class MyVideo(Image):
             w = h * tw / th
             y = 0
             x = (sw - w) / 2
-        return int(x), int(y), int(w), int(h)
+
+        return x, y, w, h

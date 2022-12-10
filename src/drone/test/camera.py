@@ -1,8 +1,11 @@
 from typing import Callable
 
 import numpy as np
+from kivy import Logger
 from kivy.app import App
 from kivy.clock import Clock, mainthread
+from kivy.uix.layout import Layout
+from kivy.uix.widget import Widget
 
 from drone.api.camera import Camera
 from drone.test.renderer3d.collision import raycast_scene
@@ -26,9 +29,22 @@ class TestCamera(Camera):
 
     @mainthread
     def setup(self):
-        # HACK: We need to render to the main app, so the test_camera_parent ID must be set
-        App.get_running_app().root.ids.test_camera_parent.size = self.resolutions_video[0]  # Size is set manually
-        App.get_running_app().root.ids.test_camera_parent.add_widget(self._renderer)
+        # HACK: Attach ourselves to the app to force offscreen rendering
+        # - Find a suitable widget to attach to (not a layout that will change the size of our widget)
+        def invalid_parent(parent: Widget) -> bool:
+            return isinstance(parent, Layout)
+
+        possible_parent_queue = [App.get_running_app().root]
+        cur_parent = possible_parent_queue.pop()
+        while invalid_parent(cur_parent):
+            possible_parent_queue.extend(cur_parent.children)
+            if len(possible_parent_queue) == 0:
+                raise RuntimeError('Unable to automatically find a suitable parent widget for the offscreen renderer')
+            cur_parent = possible_parent_queue.pop()
+
+        Logger.info('TestCamera: Chose parent %s to attach the hacky offscreen renderer' % cur_parent)
+        self._renderer.size = self.resolutions_video[0]
+        cur_parent.add_widget(self._renderer)
 
     def raycast(self, ray_origin: np.ndarray, ray_dir: np.ndarray) -> float:
         """Returns the distance to the closest object in the scene that collides with the given ray. -1 on no collision.
