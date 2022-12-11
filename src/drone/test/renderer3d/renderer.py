@@ -30,7 +30,7 @@ class MySceneRenderer(Renderer):
     def _adjust_aspect(self, _inst, _val):
         aspect = self.size[0] / float(self.size[1])
         self.camera.aspect = aspect
-        Logger.warn('Renderer: aspect ratio adjusted to %s (size changed to %s)' % (aspect, self.size))
+        Logger.debug('Renderer: aspect ratio adjusted to %s (size changed to %s)' % (aspect, self.size))
 
     @mainthread
     def queue_render(self, callback: Optional[Callable[[], None]] = None):

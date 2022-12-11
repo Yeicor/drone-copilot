@@ -30,6 +30,8 @@ def setup():
 
     Window.bind(on_resize=hide_landscape_status_bar)
 
+    # TODO: Request required permissions
+
 
 #########################################################################
 #

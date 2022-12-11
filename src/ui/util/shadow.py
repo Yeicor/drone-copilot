@@ -13,35 +13,34 @@ def _shadow_code(size='size'):
 
         Rectangle:
             pos:
-                int(self.center_x - self.{size}[0] / 2.),\
-                int(self.center_y - self.{size}[1] / 2.)
+                int(self.center_x - self.{size}[0]*self.shadow_scale / 2.) + self.shadow_offset[0]*self.{size}[0],\
+                int(self.center_y - self.{size}[1]*self.shadow_scale / 2.) + self.shadow_offset[1]*self.{size}[1]
 
             size: [d*self.shadow_scale for d in root.{size}]
             texture: root.texture
-
-        Color:  # Reset color
-            rgba: root.color
 '''
 
 
 Builder.load_string(f'''
 <ShadowLabel>: {_shadow_code('texture_size')}
 <ShadowButton>: {_shadow_code('texture_size')}
-<ShadowImage>: {_shadow_code()}
+<ShadowImage>: {_shadow_code('norm_image_size')}
 ''')
 
 
 class ShadowLabel(Label):
+    shadow_offset = ListProperty([0.025, -0.025])
     shadow_scale = NumericProperty(1.1)
     shadow_tint = ListProperty([0, 0, 0, 1])
 
 
 class ShadowButton(Button, ShadowLabel):
+    shadow_offset = ListProperty([0.025, -0.025])
     shadow_scale = NumericProperty(1.1)
     shadow_tint = ListProperty([0, 0, 0, 1])
 
 
 class ShadowImage(Image):
-    # TODO: Keep aspect ratio!
-    shadow_scale = NumericProperty(1.025)
+    shadow_offset = ListProperty([0.025, -0.025])
+    shadow_scale = NumericProperty(1.1)
     shadow_tint = ListProperty([0, 0, 0, 1])

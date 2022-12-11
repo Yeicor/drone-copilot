@@ -1,0 +1,48 @@
+#: kivy 2.1.0
+#: import * ui.util.shadow
+
+<LeftBar>:
+    orientation: 'vertical'
+    pos: self.parent.pos[0], self.parent.pos[1] + self.parent.height - self.height - app.ui_el('top_bar', 'height', 0)
+    size: self.parent.width * 0.075 * app.ui_scale, self.parent.height - app.ui_el('bottom_bar', 'height', 0) - app.ui_el('top_bar', 'height', 0)
+    opacity: 0.5 * app.ui_opacity
+
+    RelativeLayout:
+        ShadowImage:
+            source: 'assets/dronestatus/battery.png'
+            allow_stretch: True
+        ShadowLabel:
+            id: battery_label
+            text: '??%'  # TODO: Tooltips for most UI elements!
+            font_size: self.parent.width * 0.2
+
+    BoxLayout:
+        ShadowImage:
+            source: 'assets/dronestatus/thermometer.png'
+            size_hint: (0.5, 1)
+        ShadowLabel:
+            id: temperature_label
+            text: '??ºC' # TODO: Red for high! (apply to other properties too)
+            font_size: self.parent.width * 0.2
+
+    BoxLayout:
+        ShadowImage:
+            source: 'assets/dronestatus/signal.png'
+            size_hint: (0.5, 1)
+        ShadowLabel:
+            id: signal_label
+            text: '??%'
+            font_size: self.parent.width * 0.2
+
+    BoxLayout:
+        ShadowImage:
+            source: 'assets/dronestatus/height.png'
+            size_hint: (0.5, 1)
+        ShadowLabel:
+            id: height_label
+            text: '??m'
+            font_size: self.parent.width * 0.2
+
+    # Final spacer to fill the rest of the space
+    Widget:
+        size_hint: (1, 6)

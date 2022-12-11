@@ -1,5 +1,7 @@
 __version__ = '0.5.9'
 
+import logging
+
 if __name__ == '__main__':
     import os
     import sys
@@ -38,23 +40,29 @@ if __name__ == '__main__':
 
     if is_production_build:
         # By default, increase log level and remove debugging widgets in production builds (mobile is always production)
-        if Logger.getEffectiveLevel() == 10:  # DEBUG
+        if Logger.isEnabledFor(logging.DEBUG):
             Logger.setLevel('INFO')
 
-    # ===> Start the App <===
-    #
-    from ui.app import App
+    # Start the main app or the testing sub-apps based on the command line arguments
+    arg = sys.argv[1][0].lower() if len(sys.argv) > 1 else "m"  # Default to main app
 
-    App().run()  # The main app
+    if arg == 'm':
+        # ===> Start the App <===
+        from ui.main import App
 
-    # ===> Test rendering a virtual 3D scene <===
-    #
-    # from drone.app import DroneCopilotApp
-    #
-    # Renderer3DTestApp().run()
+        App().run()  # The main app
 
-    # ===> Test object detection from webcam <===
-    #
-    # from autopilot.tracking.detector.webcam import WebcamDetectorApp
-    #
-    # WebcamDetectorApp().run()
+    elif arg == '3':
+        # ===> Test rendering a virtual 3D scene <===
+        from drone.test.renderer3d.main import Renderer3DTestApp
+
+        Renderer3DTestApp().run()
+
+    elif arg == 'w':
+        # ===> Test object detection from webcam <===
+        from autopilot.tracking.detector.webcam import WebcamDetectorApp
+
+        WebcamDetectorApp().run()
+
+    else:
+        Logger.warning("The first argument is the app to run. Valid values are: m, 3, w (see main.py)")

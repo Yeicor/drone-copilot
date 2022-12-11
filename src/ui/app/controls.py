@@ -19,57 +19,6 @@ class Controls(abc.ABC):
                     on_joy_button_down=lambda *args: self.on_gamepad_press(*args, down=True),
                     on_joy_button_up=lambda *args: self.on_gamepad_press(*args, down=False))
 
-    @abc.abstractmethod
-    def action_joysticks(self, joystick_left_x: Optional[float], joystick_left_y: Optional[float],
-                         joystick_right_x: Optional[float], joystick_right_y: Optional[float]):
-        """
-        Called when the "joysticks" are moved.
-        :param joystick_left_x: The X axis of the left joystick, from -1 to 1 (None if not changed).
-        :param joystick_left_y: The Y axis of the left joystick, from -1 to 1 (None if not changed).
-        :param joystick_right_x: The X axis of the right joystick, from -1 to 1 (None if not changed).
-        :param joystick_right_y: The Y axis of the right joystick, from -1 to 1 (None if not changed).
-        :return: None
-        """
-        pass
-
-    def action_takeoff_land(self):
-        """
-        Called when the takeoff/land action is triggered.
-        :return: None
-        """
-        pass
-
-    def action_toggle_tracking(self, set_enabled: Optional[bool] = None):
-        """
-        Called when the tracking action is triggered.
-        :param set_enabled: If set, force the tracking to be enabled or disabled.
-        :return: None
-        """
-        pass
-
-    def action_take_photo(self):
-        """
-        Called when the take photo action is triggered.
-        :return: None
-        """
-        pass
-
-    def action_toggle_settings(self, force_show: bool = False, menu: Optional[str] = None):
-        """
-        Called when the settings action is triggered.
-        :param force_show: If set, force the settings to be shown.
-        :param menu: If set, force the settings to be shown on this menu.
-        :return: None
-        """
-        pass
-
-    def action_screenshot_app(self):
-        """
-        Called when the app screenshot action is triggered.
-        :return: None
-        """
-        pass
-
     # ==================== KEYBOARD / GAMEPAD events (UI events are in the .kv file) ====================
     keyboard_down: Dict[int, bool] = {}
 
@@ -151,3 +100,55 @@ class Controls(abc.ABC):
                 self.action_take_photo()
             elif button == 3:  # Y
                 self.action_toggle_tracking()
+
+    # ==================== ACTIONS that should be implemented by subclasses ====================
+    @abc.abstractmethod
+    def action_joysticks(self, joystick_left_x: Optional[float], joystick_left_y: Optional[float],
+                         joystick_right_x: Optional[float], joystick_right_y: Optional[float]):
+        """
+        Called when the "joysticks" are moved.
+        :param joystick_left_x: The X axis of the left joystick, from -1 to 1 (None if not changed).
+        :param joystick_left_y: The Y axis of the left joystick, from -1 to 1 (None if not changed).
+        :param joystick_right_x: The X axis of the right joystick, from -1 to 1 (None if not changed).
+        :param joystick_right_y: The Y axis of the right joystick, from -1 to 1 (None if not changed).
+        :return: None
+        """
+        pass
+
+    def action_takeoff_land(self):
+        """
+        Called when the takeoff/land action is triggered.
+        :return: None
+        """
+        pass
+
+    def action_toggle_tracking(self, set_enabled: Optional[bool] = None):
+        """
+        Called when the tracking action is triggered.
+        :param set_enabled: If set, force the tracking to be enabled or disabled.
+        :return: None
+        """
+        pass
+
+    def action_take_photo(self):
+        """
+        Called when the take photo action is triggered.
+        :return: None
+        """
+        pass
+
+    def action_toggle_settings(self, force: Optional[bool] = None, menu: Optional[str] = None):
+        """
+        Called when the settings action is triggered.
+        :param force: If set, force the settings to be shown or hidden.
+        :param menu: If set, force the settings to be on this menu.
+        :return: None
+        """
+        pass
+
+    def action_screenshot_app(self):
+        """
+        Called when the app screenshot action is triggered.
+        :return: None
+        """
+        pass

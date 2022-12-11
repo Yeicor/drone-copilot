@@ -1,0 +1,44 @@
+#: kivy 2.1.0
+#: import * ui.util.shadow
+
+<RightBar>:
+    orientation: 'vertical'
+    pos: self.parent.pos[0] + self.parent.width - self.width, app.ui_el('left_bar', 'y', 0)
+    size: self.parent.width * 0.075 * app.ui_scale, self.parent.height - app.ui_el('bottom_bar', 'height', 0) - app.ui_el('top_bar', 'height', 0)
+    opacity: 0.5 * app.ui_opacity
+
+    ShadowButton:
+        on_press: app.action_toggle_settings()
+        ShadowImage:
+            source: 'assets/other/settings.png'
+            pos: self.parent.pos
+            size: self.parent.size[0], self.parent.size[1]
+        BoxLayout:
+            pos: (self.parent.pos[0], self.parent.pos[1] - self.height*0.25)
+            size: self.parent.size
+            Image:
+                source: 'assets/keyboard/O_Key_Dark.png'
+            Image:
+                source: 'assets/keyboard/F1_Key_Dark.png'
+            Widget:
+                size_hint: (1, None)  # Just a spacer
+
+    ShadowButton:
+        width: self.parent.size[0] / 2
+        on_press: app.action_take_photo()
+        ShadowImage:
+            source: 'assets/other/camera.png'
+            pos: self.parent.pos
+            size: self.parent.size
+        BoxLayout:
+            pos: (self.parent.pos[0], self.parent.pos[1] - self.height*0.25)
+            size: self.parent.size
+            Image:
+                source: 'assets/keyboard/P_Key_Dark.png'
+            Image:
+                source: 'assets/controller/XboxSeriesX_B.png'
+            Widget:
+                size_hint: (1, None)  # Just a spacer
+
+    BoxLayout: # Just a spacer to move the buttons to the top
+        size_hint: (None, 8)

@@ -27,6 +27,6 @@ See [release.yml](.github/workflows/release.yml), which automatically builds rel
 
 ## Demos
 
-### v0.5.3
+### v0.6.0
 
-![android_v0.5.3.png](docs/android_v0.5.3.png)
+![screenshot.png](docs/screenshot.png)
