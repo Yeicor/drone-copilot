@@ -81,10 +81,10 @@ jobs:
         run: |
           yes | keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -validity 14000
           mv debug.keystore ~/.android/debug.keystore
-          wget "https://github.com/google/bundletool/releases/download/1.13.1/bundletool-all-1.13.1.jar"
-          java -jar bundletool-all-1.13.1.jar build-apks --bundle bin/*.aab --output bin/release.apks --mode=universal
+          wget -O bundletool.jar "https://github.com/google/bundletool/releases/download/1.13.1/bundletool-all-1.13.1.jar"
+          java -jar bundletool.jar build-apks --bundle bin/*.aab --output bin/release.apks --mode=universal
           unzip bin/release.apks -d bin  # Extract the internal APK (universal.apk) from the APK set
-          rm release.apks
+          rm bin/release.apks
 
       - name: Rename build
         run: |
