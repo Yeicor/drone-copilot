@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import os
+import platform
 
 
 datas = []
@@ -42,16 +43,18 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-splash = Splash(
-    os.path.join('src', 'assets', 'other', 'icon.png'),
-    binaries=a.binaries,
-    datas=a.datas,
-    text_pos=(2, 20),
-    text_color='white',
-    text_size=12,
-    minify_script=True,
-    always_on_top=True,
-)
+splash = None
+if platform.system() != 'Darwin':  # Splash screen is not supported on macOS
+    splash = Splash(
+        os.path.join('src', 'assets', 'other', 'icon.png'),
+        binaries=a.binaries,
+        datas=a.datas,
+        text_pos=(2, 20),
+        text_color='white',
+        text_size=12,
+        minify_script=True,
+        always_on_top=True,
+    )
 
 exe = EXE(  # One-file mode.
     pyz,
@@ -59,8 +62,7 @@ exe = EXE(  # One-file mode.
     a.binaries,
     a.zipfiles,
     a.datas,
-    splash,
-    splash.binaries,
+    *([splash, splash.binaries] if splash else []),
     [],
     name='drone-copilot',
     debug=False,
