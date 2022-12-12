@@ -29,7 +29,7 @@ from kivy import Logger
 from kivy.utils import platform
 
 from autopilot.tracking.detector.api import Detector, Detection, Category, Rect
-from util.download import download_or_cache
+from util.filesystem import download_or_cache
 
 # pylint: disable=g-import-not-at-top
 try:

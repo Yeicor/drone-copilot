@@ -1,7 +1,5 @@
 __version__ = '0.6.0'
 
-import logging
-
 if __name__ == '__main__':
     import os
     import sys
@@ -22,26 +20,24 @@ if __name__ == '__main__':
 
     if is_pyinstaller_build:  # PyInstaller
         from kivy.resources import resource_add_path
+        import importlib
 
         # Help the app find resources stored in the PyInstaller bundle
         # noinspection PyProtectedMember
         resource_add_path(os.path.join(sys._MEIPASS))
 
-        # Help PyInstaller bundle dynamically loaded python modules
-        from ui.video.video import MyVideo
-        from ui.video.tracker import DefaultTracker
-        from ui.util.joystick import MyJoystick
-        from ui.util.shadow import *
+        # Hide the splash screen
+        if '_PYIBoot_SPLASH' in os.environ and importlib.util.find_spec("pyi_splash"):
+            import pyi_splash
 
-        _ignore1 = MyVideo
-        _ignore2 = DefaultTracker
-        _ignore3 = MyJoystick
-        _ignore4 = ShadowLabel
+            pyi_splash.update_text('UI Loaded ...')
+            pyi_splash.close()
+            Logger.info('Splash screen closed.')
 
-    if is_production_build:
-        # By default, increase log level and remove debugging widgets in production builds (mobile is always production)
-        if Logger.isEnabledFor(logging.DEBUG):
-            Logger.setLevel('INFO')
+    # if is_production_build:
+    #     # By default, increase log level and remove debugging widgets in production builds
+    #     if Logger.isEnabledFor(logging.DEBUG):
+    #         Logger.setLevel('INFO')
 
     # Start the main app or the testing sub-apps based on the command line arguments
     arg = sys.argv[1][0].lower() if len(sys.argv) > 1 else "m"  # Default to main app

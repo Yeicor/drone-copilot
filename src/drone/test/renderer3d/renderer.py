@@ -1,7 +1,6 @@
 """
 This shows the 3D viewer of the scene in a single app
 """
-import os.path
 from typing import Callable, Optional
 
 import numpy as np
@@ -10,6 +9,7 @@ from kivy.clock import mainthread
 from kivy3 import Renderer, PerspectiveCamera
 
 from drone.test.renderer3d.scene import load_scene
+from util.filesystem import source
 
 
 class MySceneRenderer(Renderer):
@@ -17,7 +17,7 @@ class MySceneRenderer(Renderer):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(shader_file=os.path.join(os.path.dirname(__file__), 'default.glsl'), **kwargs)
+        super().__init__(shader_file=source('drone', 'test', 'renderer3d', 'default.glsl'), **kwargs)
         self.set_clear_color((0.3, 0.5, 0.8, 1.0))  # background color: sky blue
         self.opacity = 0.0  # HACK: disable rendering of the widget to the screen, we only want to render to the FBO
         self.bind(size=self._adjust_aspect)  # adjust camera aspect ratio when window size changes

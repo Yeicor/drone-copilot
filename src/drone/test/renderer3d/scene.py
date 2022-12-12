@@ -1,14 +1,16 @@
 import os
 import tarfile
-import tempfile
+from shutil import rmtree
 
 from kivy import Logger
 from kivy3 import Scene
 from kivy3.loaders import OBJMTLLoader
 from kivy3.loaders import objloader
 
+from util.filesystem import source, cache
+
 # HACK: load empty.png (if needed) from the current directory instead of the library which does not contain it
-objloader.folder = os.path.dirname(os.path.abspath(__file__))
+objloader.folder = source('drone', 'test', 'renderer3d')
 
 
 def load_scene() -> Scene:
@@ -19,15 +21,14 @@ def load_scene() -> Scene:
     All used textures are CC0-licensed and modified from the original ones.
     """
     # Extract the obj file
-    extract_to = tempfile.TemporaryDirectory()
-    with tarfile.open(os.path.join(os.path.dirname(__file__), 'scene.tar.gz'), 'r|*') as tar:
-        tar.extractall(path=extract_to.name)
+    extract_to = cache('scene')
+    with tarfile.open(source('drone', 'test', 'renderer3d', 'scene.tar.gz'), 'r|*') as tar:
+        tar.extractall(path=extract_to)
     Logger.info('renderer3d: Extracted scene to %s', extract_to)
     # Load the obj file
     loader = OBJMTLLoader()
-    obj_path = os.path.join(os.path.dirname(__file__), os.path.join(extract_to.name, 'scene.obj'))
-    loaded_obj = loader.load(obj_path, os.path.join(extract_to.name, 'scene.mtl'))
-    extract_to.cleanup()  # Cleanup the temporary directory (no files left on the device)
+    loaded_obj = loader.load(os.path.join(extract_to, 'scene.obj'), os.path.join(extract_to, 'scene.mtl'))
+    rmtree(extract_to)  # Cleanup the temporary directory (no files left on the device)
     # Prepare the scene
     scene = Scene()
     # loaded_obj.pos.y = -0.3  # move the ground down a bit

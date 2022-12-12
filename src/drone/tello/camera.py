@@ -9,7 +9,6 @@ from kivy import Logger
 from tellopy import Tello
 
 from drone.api.camera import Camera
-from util.video import StreamingVideoSource
 
 
 class TelloCamera(Camera):  # TODO: Threadsafe implementation
@@ -57,6 +56,7 @@ class TelloCamera(Camera):  # TODO: Threadsafe implementation
     def listen_video(self, resolution: (int, int), callback: Callable[[np.ndarray], None]) -> Callable[[], None]:
         # First listener sets up the shared video decoder
         if len(self.listeners_video) == 0:
+            from util.video import StreamingVideoSource
             # Start the shared decoder
             self.decoder = StreamingVideoSource()
             self.decoder.start()

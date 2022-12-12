@@ -17,6 +17,7 @@ from drone.api.status import Status
 from ui.app.controls import Controls
 from ui.util.monitor import setup_monitor
 from ui.util.photo import save_image_to_pictures
+from util.filesystem import source
 
 
 class AppUI(Controls):
@@ -30,8 +31,8 @@ class AppUI(Controls):
     _ui_resizing: Optional[ClockEvent] = None
     _ui_resizing_ignore: bool = False
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self):
+        super().__init__()
         Window.bind(on_resize=lambda _dt, width, height: self.ui_on_resize(width, height))
 
     @abstractmethod
@@ -64,13 +65,13 @@ class AppUI(Controls):
         _ = ui.app.modules.BottomBar
 
         # Preload all KV files that are used by the app
-        for kv_dep in sorted(glob.glob('ui/app/kv/*.kv')):
+        for kv_dep in sorted(glob.glob(source('ui', 'app', 'kv', '**.kv'))):
             Logger.info('AppUI: Preloading KV file: {}'.format(kv_dep))
             Builder.load_file(kv_dep)
 
         # Load the root widget of the app
         Logger.info('AppUI: Loading main file')
-        self._ui_el_root = Builder.load_file('ui/app/ui.kv')
+        self._ui_el_root = Builder.load_file(source('ui', 'app', 'ui.kv'))
         Logger.info('AppUI: Main file loaded: %s' % self._ui_el_root)
 
         # Provide dynamic access (recursively, flattening) to all named widgets in the UI (ui_el_<id> or ui_el(<id>)).
@@ -82,19 +83,18 @@ class AppUI(Controls):
         to_process = [el]
         while len(to_process) > 0:
             widget = to_process.pop()
-            Logger.debug('AppUI: Processing: {}'.format(widget))
-            if hasattr(widget, 'ids'):
-                for name, child in widget.ids.items():
-                    Logger.debug('AppUI: Found named widget: %s' % name)
-                    setattr(self, 'ui_el_' + name, child)
-                    to_process.append(child)
+            Logger.debug('AppUI: Processing: {}: {}'.format(widget, widget.ids))
+            for name, child in widget.ids.items():
+                Logger.debug('AppUI: Found named widget: %s' % name)
+                setattr(self, 'ui_el_' + name, child)
+                to_process.append(child)
 
     def ui_el(self, _id: str, _property: Optional[str] = None, _default: any = None) -> Widget:
-        """Returns the widget with the given id (or its property), or `default` if not found.
+        """Returns the widget with the given id (or its property if given), or default.
 
         :param _id: The id of the widget.
         :param _property: The property of the widget to return.
-        :param _default: The default value to return if the widget is not found.
+        :param _default: The default value to return if either is set and not found.
         :return: The widget with the given name, or None if not found.
         """
         widget = getattr(self, 'ui_el_' + _id, None)
@@ -193,8 +193,10 @@ class AppUI(Controls):
         self.ui_el('joystick_left').disabled = not self._ui_drone.status.flying
         self.ui_el('joystick_right').disabled = not self._ui_drone.status.flying
         if self._ui_drone.status.flying:
+            self.ui_el('takeoff_land_button').background_color = (1, 1, 0, 1)
             self.ui_el('takeoff_land_button').text = 'Land'  # TODO: Icons?
         else:
+            self.ui_el('takeoff_land_button').background_color = (1, 1, 1, 1)
             self.ui_el('takeoff_land_button').text = 'Takeoff'
 
     @mainthread
@@ -217,25 +219,24 @@ class AppUI(Controls):
                 self.ui_el('joystick_right').force_pad_y_pos(joystick_right_y)
 
     def action_toggle_tracking_result(self, now_enabled: bool):
-        self.ui_el('tracking_button').text = 'Tracking (enabled)' if now_enabled else 'Tracking (disabled)'
+        self.ui_el('tracking_button').background_color = (0, 1, 0, 1) if now_enabled else (1, 1, 1, 1)
 
     def action_toggle_settings(self, force: Optional[bool] = None, menu: Optional[str] = None):
         Logger.debug('AppUI: action_toggle_settings()')
         settings, just_created = self.ui_get_or_create_settings()
         if just_created:
+            # TODO: Automatically add sliders to the interface after each int/float setting with min & max values
             settings.interface.bind(on_close=lambda *_args: self.action_toggle_settings(False))
         if menu:  # HACK: Access internal properties to set the settings panel menu
             settings.interface.menu.spinner.text = menu
         if self.ui_el('right_panel').size_hint_x == 0:  # Open the settings
-            self.ui_el('right_panel').size_hint_x = 0.5  # TODO: Animation?
-            self.ui_el('right_panel').add_widget(settings)
-            if force is False:
-                self.action_toggle_settings()  # Call it again to open it properly
+            if force is not False:
+                self.ui_el('right_panel').size_hint_x = 0.5  # TODO: Animation?
+                self.ui_el('right_panel').add_widget(settings)
         else:  # Close the settings
-            self.ui_el('right_panel').remove_widget(settings)
-            self.ui_el('right_panel').size_hint_x = 0
-            if force is True:
-                self.action_toggle_settings()  # Call it again to open it properly
+            if force is not True:
+                self.ui_el('right_panel').remove_widget(settings)
+                self.ui_el('right_panel').size_hint_x = 0
 
     def action_screenshot_app(self):
         Logger.debug('AppUI: action_screenshot_app()')

@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
@@ -19,5 +17,4 @@ class Renderer3DTestApp(App):
 
 
 if __name__ == '__main__':
-    os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../..'))
     Renderer3DTestApp().run()

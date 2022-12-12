@@ -1,6 +1,6 @@
-# App configuration
-*.ini
-/.cache
+# App configuration and cache
+/src/**/*.ini
+/src/.cache
 
 # Environment
 /venv/
