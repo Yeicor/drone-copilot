@@ -1,7 +1,7 @@
 """This is the API that any object detector shares"""
 
 import abc
-from typing import Optional, List
+from typing import Optional, List, Callable
 
 import numpy as np
 
@@ -10,6 +10,15 @@ from autopilot.tracking.detector.api import Detection
 
 class Tracker(abc.ABC):
     """An object tracker API that follows an object through an image sequence (video)."""
+
+    def load(self, callback: Callable[[float], None] = None):
+        """Asynchronously starts loading the model (if required).
+
+        No other method should be called until callback(1) is called.
+
+        :param callback: a callback that will be called with the progress of the loading [0, 1].
+        """
+        callback(1)
 
     @abc.abstractmethod
     def track(self, img: np.ndarray, min_confidence: float = 0.5) -> (Optional[Detection], List[Detection]):

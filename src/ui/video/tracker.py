@@ -3,6 +3,7 @@ from typing import List, Optional
 
 import numpy as np
 from kivy import Logger
+from kivy.app import App
 from kivy.clock import mainthread, Clock
 from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Rectangle, Line, PopState, PushState
@@ -34,6 +35,7 @@ class Tracker(Widget):
         self._new_img_event = Event()
         self._new_img_lock = Lock()
         self._img = None
+        self._load_progress: Optional[float] = -1
         # Event listeners
         self.register_event_type('on_track')
 
@@ -70,8 +72,28 @@ class Tracker(Widget):
         :param all_detections: the list of all detections.
         """
 
-        # Draw an overlay on the video feed
+        # Clear the canvas
+        self.canvas.ask_update()
         self.canvas.clear()
+
+        # If we are loading the model, show a progress bar
+        if self._load_progress is not None:
+            msg = f'Loading tracker... {self._load_progress * 100:.0f}%'
+            Logger.info(f'Tracker: {msg}')
+            label = CoreLabel(text=msg, font_size=16)
+            label.refresh()  # The label is usually not drawn until needed, so force it to draw.
+
+            app = App.get_running_app()
+            left_bar = app.ui_el('left_bar')
+            top_bar = app.ui_el('top_bar')
+            label_pos = (left_bar.x + left_bar.width + 10, top_bar.y - top_bar.height - 10)
+
+            with self.canvas:
+                Color(1, 0, 0, 1)
+                Rectangle(texture=label.texture, pos=label_pos, size=label.texture.size)
+            return
+
+        # Draw an overlay on the video feed
         sx, sy, sw, sh = self.video.get_screen_bounds()
         with self.canvas:
             PushState()
@@ -101,7 +123,7 @@ class Tracker(Widget):
                 msg = f'{det.category.label} ({det.confidence * 100:.0f}%)'
                 label = CoreLabel(text=msg, font_size=12)
                 label.refresh()  # The label is usually not drawn until needed, so force it to draw.
-                Rectangle(texture=label.texture, pos=(bb.x_min, bb.y_min - label.texture.height))
+                Rectangle(texture=label.texture, pos=(bb.x_min, bb.y_min), size=label.texture.size)
 
             PopState()
 
@@ -113,10 +135,23 @@ class Tracker(Widget):
         """Starts the background thread."""
         if self.is_running():
             self.stop()
-        Logger.info('Tracker: Starting...')
-        # Create a new thread (as they can't be reused)
-        self._thread = Thread(target=self.run, name='Tracker')
-        self._thread.start()
+        Logger.info('Tracker: Loading...')
+        if self._load_progress == -1:
+            self._load_progress = 0
+            self._tracker.load(self._on_load_progress)
+        else:
+            self._on_load_progress(1)  # Start the thread immediately if the model is already loaded
+
+    def _on_load_progress(self, progress: float):
+        if progress < 1:
+            self._load_progress = progress
+            self._update_ui(None, [])
+        else:  # Done loading
+            self._load_progress = None
+            Logger.info('Tracker: Loaded. Starting...')
+            # Create a new thread (as they can't be reused)
+            self._thread = Thread(target=self.run, name='Tracker')
+            self._thread.start()
 
     def stop(self):
         """Stops the background thread and waits for it. The thread can be started again."""

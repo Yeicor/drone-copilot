@@ -1,4 +1,5 @@
 import os
+from typing import Callable, Optional
 
 import requests
 from kivy import Logger
@@ -36,7 +37,7 @@ def cache(*rel_name_parts: str) -> str:
     return source('.cache', *rel_name_parts)
 
 
-def download_or_cache(url: str, cache_dir: str = cache()) -> str:
+def download_or_cache(url: str, cache_dir: str = cache(), **kwargs) -> str:
     """Downloads a file from a URL to a directory. If the file already exists, it will be skipped.
 
     :return: The path to the downloaded file."""
@@ -49,18 +50,27 @@ def download_or_cache(url: str, cache_dir: str = cache()) -> str:
         Logger.info(f'download_or_cache: File already exists: {filepath}')
         return filepath
 
-    download(url, filepath)
+    download(url, filepath, **kwargs)
 
     return filepath
 
 
-def download(url, filepath, ):
+def download(url, filepath, progress: Optional[Callable[[float], None]] = None):
     """Downloads a file from a URL to a file path (asynchronous callbacks)."""
     Logger.info(f'download: Downloading {url} to {filepath}...')
     with open(filepath, 'wb') as f:
         response = requests.get(url, stream=True)
         response.raise_for_status()
+        try:
+            content_length = int(response.headers['Content-length'])
+        except ValueError:
+            content_length = -1  # the default value
         # Write response data to file
+        received = 0
         for block in response.iter_content(4096):
             f.write(block)
+            received += len(block)
+            if progress is not None:
+                progress(received / content_length if content_length != -1 else 0.5)
     Logger.info(f'download: File downloaded to: {filepath}')
+    progress(1)

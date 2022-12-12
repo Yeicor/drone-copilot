@@ -1,6 +1,6 @@
 import sys
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional, List, Callable
 
 import numpy as np
 
@@ -15,6 +15,9 @@ class SimpleTracker(Tracker, ABC):
         super().__init__()
         self.detector = detector
 
+    def load(self, callback: Callable[[float], None] = None):
+        self.detector.load(callback)  # Only loads the detector, no extra work is required
+
     def track(self, img: np.ndarray, min_confidence: float = 0.5) -> (Optional[Detection], List[Detection]):
         all_detections = self.detector.detect(img, min_confidence)
         return self.track_strategy(all_detections), all_detections
@@ -27,6 +30,8 @@ class SimpleTracker(Tracker, ABC):
         """
         pass
 
+    # TODO: Recovery strategy
+
 
 class SimpleTrackerAny(SimpleTracker):
     """Tracks the object that is detected with the most confidence on the first frame.
@@ -35,7 +40,7 @@ class SimpleTrackerAny(SimpleTracker):
     """
 
     def __init__(self, detector: Detector, category_filter: Optional[int] = None, confidence_score_weight: float = 1,
-                 dist_iou_score_weight: float = 2, min_score_weight: float = 0):
+                 dist_iou_score_weight: float = 2, min_score_weight: float = -1):
         """
         :param detector: the detector to use.
         :param category_filter: the category to track, or None to track any class.

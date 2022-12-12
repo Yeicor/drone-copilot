@@ -2,7 +2,7 @@
 
 import abc
 from dataclasses import dataclass
-from typing import List
+from typing import List, Callable
 
 import numpy as np
 
@@ -53,6 +53,15 @@ class Detection:
 
 class Detector(abc.ABC):
     """An object detector API that looks for matches in a single image."""
+
+    def load(self, callback: Callable[[float], None] = None):
+        """Asynchronously starts loading the model (if required).
+
+        No other method should be called until callback(1) is called.
+
+        :param callback: a callback that will be called with the progress of the loading [0, 1].
+        """
+        callback(1)
 
     @abc.abstractmethod
     def detect(self, img: np.ndarray, min_confidence: float = 0.5, max_results: int = -1) -> List[Detection]:

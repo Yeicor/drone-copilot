@@ -21,6 +21,7 @@
 import abc
 import typing
 import zipfile
+from threading import Thread, Lock
 from typing import List, NamedTuple, Optional
 
 import cv2
@@ -104,15 +105,25 @@ class TFLiteDetector(Detector):
         :param labels: List of labels for the model. They will be automatically retrieved from the model if available.
         :param options: The config to initialize an object detector.
         """
+        self._model_path = model_path
+        self._labels = labels
         self._options = options
+        self._interpreter: Optional[Interpreter] = None
+        self._interpreter_lock = Lock()
 
+    def load(self, callback: typing.Callable[[float], None] = None):
+        Thread(target=self._load, args=(callback,)).start()
+
+    def _load(self, callback: typing.Callable[[float], None] = None):
         # Download the model if it's a remote URL.
-        if model_path.startswith('http'):
-            model_path = download_or_cache(url=model_path)
+        callback(0.01)
+        if self._model_path.startswith('http'):
+            self._model_path = download_or_cache(url=self._model_path, progress=lambda p: callback(p * 0.9))
+        callback(0.9)
 
         # Load label list from metadata.
         try:
-            with zipfile.ZipFile(model_path) as model_with_metadata:
+            with zipfile.ZipFile(self._model_path) as model_with_metadata:
                 if not model_with_metadata.namelist():
                     raise ValueError('Invalid TFLite model: no label file found.')
 
@@ -122,23 +133,25 @@ class TFLiteDetector(Detector):
                     self._label_list = [label.decode('ascii') for label in label_list]
         except zipfile.BadZipFile:
             Logger.warn('No metadata found in the model, using the provided label list or no labels.')
-            self._label_list = labels or []
+            self._label_list = self._labels or []
 
         Logger.info("TFLiteDetector: model labels: %s" % self._label_list)
 
         # Initialize TFLite model.
-        if options.enable_edgetpu:
-            if libedgetpu_name() is None:
-                raise OSError("The current OS isn't supported by Coral EdgeTPU.")
-            self._interpreter = Interpreter(model_path=model_path, num_threads=options.num_threads,
-                                            experimental_delegates=[load_delegate(libedgetpu_name())])
-        else:
-            self._interpreter = Interpreter(model_path=model_path, num_threads=options.num_threads)
+        with self._interpreter_lock:
+            if self._options.enable_edgetpu:
+                if libedgetpu_name() is None:
+                    raise OSError("The current OS isn't supported by Coral EdgeTPU.")
+                self._interpreter = Interpreter(model_path=self._model_path, num_threads=self._options.num_threads,
+                                                experimental_delegates=[load_delegate(libedgetpu_name())])
+            else:
+                self._interpreter = Interpreter(model_path=self._model_path, num_threads=self._options.num_threads)
 
-        self._interpreter.allocate_tensors()
+            self._interpreter.allocate_tensors()
 
-        self.input_size, self._dtype = self._on_load_model(self._interpreter)
-        Logger.info('TFLiteDetector: input_size: %s, dtype: %s' % (str(self.input_size), self._dtype))
+            self.input_size, self._dtype = self._on_load_model(self._interpreter)
+            Logger.info('TFLiteDetector: input_size: %s, dtype: %s' % (str(self.input_size), self._dtype))
+            callback(1)
 
     @abc.abstractmethod
     def _on_load_model(self, interpreter: Interpreter) -> ((int, int), typing.Any):
@@ -147,19 +160,23 @@ class TFLiteDetector(Detector):
         return (input_detail['shape'][2], input_detail['shape'][1]), input_detail['dtype']
 
     def detect(self, img: np.ndarray, min_confidence: float = 0.5, max_results: int = -1) -> List[Detection]:
-        # Prepare input tensor.
-        input_tensor, add_x, scale_x, add_y, scale_y = self._preprocess(img)
-        self._set_input_tensor(input_tensor)
+        with self._interpreter_lock:
+            if self._interpreter is None:
+                raise ValueError('The model is not loaded yet.')
 
-        # Run inference.
-        self._interpreter.invoke()
+            # Prepare input tensor.
+            input_tensor, add_x, scale_x, add_y, scale_y = self._preprocess(img)
+            self._set_input_tensor(input_tensor)
 
-        # Get all output details
-        boxes, classes, scores, count = self._get_output_tensors()
+            # Run inference.
+            self._interpreter.invoke()
 
-        # Postprocess detections and return the result.
-        return self._postprocess(boxes, classes, scores, count, min_confidence, max_results,
-                                 add_x, scale_x, add_y, scale_y)
+            # Get all output details
+            boxes, classes, scores, count = self._get_output_tensors()
+
+            # Postprocess detections and return the result.
+            return self._postprocess(boxes, classes, scores, count, min_confidence, max_results,
+                                     add_x, scale_x, add_y, scale_y)
 
     def _preprocess(self, input_image: np.ndarray) -> (np.ndarray, float, float, float, float):
         """Preprocess the input image as required by the TFLite model."""
