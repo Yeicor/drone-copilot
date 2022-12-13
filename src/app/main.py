@@ -12,10 +12,10 @@ from drone.api.camera import Camera
 from drone.api.drone import Drone
 from drone.api.status import Status
 from drone.registry import drone_connect_auto
-from ui.app.ui import AppUI
-from ui.settings.registry import get_settings_meta, get_settings_defaults
-from ui.util.photo import save_image_to_pictures
-from ui.video.tracker import Tracker
+from app.ui.appui import AppUI
+from app.settings.registry import get_settings_meta, get_settings_defaults
+from app.util.photo import save_image_to_pictures
+from app.video.tracker import Tracker
 from util.androidhacks import setup as androidhacks_setup
 
 

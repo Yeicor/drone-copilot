@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     if arg == 'm':
         # ===> Start the App <===
-        from ui.main import App
+        from app.main import App
 
         App().run()  # The main app
 
@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
     elif arg == 'w':
         # ===> Test object detection from webcam <===
-        from autopilot.tracking.detector.webcam import WebcamDetectorApp
+        from autopilot.tracking.detector.webcamapp import WebcamDetectorApp
 
         WebcamDetectorApp().run()
 

@@ -7,8 +7,8 @@ from kivy.config import ConfigParser
 from drone.api.drone import Drone
 from drone.tello.drone import TelloDrone
 from drone.test.drone import TestDrone
-from ui.settings.register import register_settings_section_meta
-from ui.settings.settings import SettingMetaOptions, SettingMetaString, SettingMetaNumeric
+from app.settings.register import register_settings_section_meta
+from app.settings.settings import SettingMetaOptions, SettingMetaString, SettingMetaNumeric
 
 # TODO: Add a test drone driver that explores a safe virtual environment
 

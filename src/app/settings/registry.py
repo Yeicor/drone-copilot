@@ -4,10 +4,10 @@ from typing import Dict
 
 if True:  # List of imports that automatically register settings:
     from drone.registry import Drone
-    from ui.settings.ui import SettingMetaNumeric
+    from app.ui.appui import AppUI
 
     _ = Drone
-    _ = SettingMetaNumeric
+    _ = AppUI
 
 
 # noinspection PyTypeChecker
@@ -15,7 +15,7 @@ def get_settings_meta() -> {str: str}:
     """
     :return: the complete list of settings metadata. Intended for the main app.
     """
-    from ui.settings.register import _settings_metadata
+    from app.settings.register import _settings_metadata
     # Build the metadata.
     dict_of_lists = {title: [{"type": "title", "title": section[0]}] + [dataclasses.asdict(x) for x in section[3]]
                      for title, sections in _settings_metadata.items() for section in sections}
@@ -33,5 +33,5 @@ def get_settings_defaults() -> Dict[str, Dict[str, any]]:
     """
     :return: the default values for all settings groups. Intended for the main app.
     """
-    from ui.settings.register import _settings_metadata
+    from app.settings.register import _settings_metadata
     return {v[1]: {v2.key: v2.default for v2 in v[3]} for title, m in _settings_metadata.items() for v in m}

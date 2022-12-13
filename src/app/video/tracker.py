@@ -7,14 +7,15 @@ from kivy.app import App
 from kivy.clock import mainthread, Clock
 from kivy.core.text import Label as CoreLabel
 from kivy.graphics import Color, Rectangle, Line, PopState, PushState
+from kivy.metrics import pt
 from kivy.properties import ObjectProperty
 from kivy.uix.widget import Widget
 
 from autopilot.tracking.detector.api import Detection
 from autopilot.tracking.detector.tflite import TFLiteEfficientDetDetector
 from autopilot.tracking.tracker.api import Tracker as TrackerAPI
-from autopilot.tracking.tracker.simple import SimpleTrackerAny
-from ui.video.video import MyVideo
+from autopilot.tracking.tracker.detectorbased import DetectorBasedTrackerAny
+from app.video.video import MyVideo
 
 
 class Tracker(Widget):
@@ -32,10 +33,11 @@ class Tracker(Widget):
         self._tracker = tracker
         # self._depth_estimator = depth_estimator
         self._thread: Optional[Thread] = None
+        self._thread_lock = Lock()
         self._new_img_event = Event()
         self._new_img_lock = Lock()
         self._img = None
-        self._load_progress: Optional[float] = -1
+        self._load_progress: Optional[float] = None
         # Event listeners
         self.register_event_type('on_track')
 
@@ -79,14 +81,13 @@ class Tracker(Widget):
         # If we are loading the model, show a progress bar
         if self._load_progress is not None:
             msg = f'Loading tracker... {self._load_progress * 100:.0f}%'
-            Logger.info(f'Tracker: {msg}')
-            label = CoreLabel(text=msg, font_size=16)
+            label = CoreLabel(text=msg, font_size=pt(16))
             label.refresh()  # The label is usually not drawn until needed, so force it to draw.
 
             app = App.get_running_app()
             left_bar = app.ui_el('left_bar')
             top_bar = app.ui_el('top_bar')
-            label_pos = (left_bar.x + left_bar.width + 10, top_bar.y - top_bar.height - 10)
+            label_pos = (left_bar.x + left_bar.width + pt(4), top_bar.y - top_bar.height - pt(16) + pt(4))
 
             with self.canvas:
                 Color(1, 0, 0, 1)
@@ -117,51 +118,57 @@ class Tracker(Widget):
                 bb.y_max = bb.y_max * sh + sy
                 # Draw the bounding box
                 Line(points=[bb.x_min, bb.y_min, bb.x_max, bb.y_min, bb.x_max, bb.y_max, bb.x_min, bb.y_max,
-                             bb.x_min, bb.y_min], width=4 if is_tracked else 2)
+                             bb.x_min, bb.y_min], width=pt(2 if is_tracked else 1))
 
                 # Render the label
                 msg = f'{det.category.label} ({det.confidence * 100:.0f}%)'
-                label = CoreLabel(text=msg, font_size=12)
+                label = CoreLabel(text=msg, font_size=pt(16))
                 label.refresh()  # The label is usually not drawn until needed, so force it to draw.
-                Rectangle(texture=label.texture, pos=(bb.x_min, bb.y_min), size=label.texture.size)
+                Rectangle(texture=label.texture, pos=(bb.x_min + pt(4), bb.y_min - pt(16 + 4)), size=label.texture.size)
 
             PopState()
 
-    def is_running(self) -> bool:
+    def is_running(self, __lock: bool = True) -> bool:
         """Returns whether the background thread is running."""
-        return self._thread and self._thread.is_alive()
+        if __lock:
+            with self._thread_lock:
+                return self._thread is not None
+        else:
+            return self._thread is not None
 
     def start(self) -> None:
-        """Starts the background thread."""
-        if self.is_running():
-            self.stop()
-        Logger.info('Tracker: Loading...')
-        if self._load_progress == -1:
-            self._load_progress = 0
-            self._tracker.load(self._on_load_progress)
-        else:
-            self._on_load_progress(1)  # Start the thread immediately if the model is already loaded
-
-    def _on_load_progress(self, progress: float):
-        if progress < 1:
-            self._load_progress = progress
-            self._update_ui(None, [])
-        else:  # Done loading
-            self._load_progress = None
-            Logger.info('Tracker: Loaded. Starting...')
-            # Create a new thread (as they can't be reused)
-            self._thread = Thread(target=self.run, name='Tracker')
+        with self._thread_lock:
+            """Starts the background thread."""
+            if self.is_running(False):
+                self.stop()
+            # Start the thread
+            self._thread = Thread(target=self._bg_thread)
             self._thread.start()
 
-    def stop(self):
+    def stop(self) -> None:
         """Stops the background thread and waits for it. The thread can be started again."""
-        Logger.info('Tracker: Stopping...')
-        self._feed(None)
-        self._thread.join()
-        Clock.schedule_once(lambda dt: self.canvas.clear())  # Clear the canvas after the thread has stopped
+        with self._thread_lock:
+            if not self.is_running(False):
+                return
+            self._feed(None)
+            self._thread.join()
+            self._thread = None
+            Clock.schedule_once(lambda dt: self.canvas.clear())  # Clear the canvas after the thread has stopped
 
-    def run(self) -> None:
+    def _bg_thread(self) -> None:
         """The background thread that runs the tracking algorithm."""
+        Logger.info('Tracker: _bg_thread() started')
+
+        if not self._tracker.is_loaded():
+            def _on_load_progress(progress: Optional[float]):
+                self._load_progress = progress
+                self._update_ui(None, [])
+
+            Logger.info('Tracker: Loading...')
+            _on_load_progress(0)
+            self._tracker.load(_on_load_progress)
+            _on_load_progress(None)  # finished loading
+
         time_stats = (0, 0)  # sum, count
 
         while True:
@@ -194,9 +201,14 @@ class Tracker(Widget):
                 # "Moving average", reset counters
                 time_stats = (0, 0)
 
+        if self._tracker.is_loaded():
+            Logger.info('Tracker: Unloading...')
+            self._tracker.unload()
+        Logger.info('Tracker: _bg_thread() stopped')
+
 
 class DefaultTracker(Tracker):
     """An implementation of the Tracker class which selects default algorithms and configurations."""
 
     def __init__(self, **kwargs):
-        super().__init__(SimpleTrackerAny(TFLiteEfficientDetDetector()), **kwargs)
+        super().__init__(DetectorBasedTrackerAny(TFLiteEfficientDetDetector()), **kwargs)

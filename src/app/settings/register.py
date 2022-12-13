@@ -1,6 +1,6 @@
 from typing import List, Tuple, Dict
 
-from ui.settings.settings import SettingMeta
+from app.settings.settings import SettingMeta
 
 _settings_metadata: Dict[str, List[Tuple[str, str, int, List[SettingMeta]]]] = {}
 

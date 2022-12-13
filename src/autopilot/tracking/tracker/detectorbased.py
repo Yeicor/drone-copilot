@@ -8,7 +8,7 @@ from autopilot.tracking.detector.api import Detection, Detector
 from autopilot.tracking.tracker.api import Tracker
 
 
-class SimpleTracker(Tracker, ABC):
+class DetectorBasedTracker(Tracker, ABC):
     """A simple tracker that runs a detector on each frame and follows a customizable strategy to track the object."""
 
     def __init__(self, detector: Detector):
@@ -16,7 +16,15 @@ class SimpleTracker(Tracker, ABC):
         self.detector = detector
 
     def load(self, callback: Callable[[float], None] = None):
-        self.detector.load(callback)  # Only loads the detector, no extra work is required
+        self.detector.load(lambda pr: callback(pr * 0.99))
+        super().load(callback)
+
+    def is_loaded(self) -> bool:
+        return self.detector.is_loaded() and super().is_loaded()
+
+    def unload(self):
+        self.detector.unload()
+        super().unload()
 
     def track(self, img: np.ndarray, min_confidence: float = 0.5) -> (Optional[Detection], List[Detection]):
         all_detections = self.detector.detect(img, min_confidence)
@@ -33,7 +41,7 @@ class SimpleTracker(Tracker, ABC):
     # TODO: Recovery strategy
 
 
-class SimpleTrackerAny(SimpleTracker):
+class DetectorBasedTrackerAny(DetectorBasedTracker):
     """Tracks the object that is detected with the most confidence on the first frame.
 
     Different filters and weights can be applied to choose the best detection on next frames.

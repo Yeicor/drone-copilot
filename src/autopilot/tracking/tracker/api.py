@@ -11,14 +11,26 @@ from autopilot.tracking.detector.api import Detection
 class Tracker(abc.ABC):
     """An object tracker API that follows an object through an image sequence (video)."""
 
-    def load(self, callback: Callable[[float], None] = None):
-        """Asynchronously starts loading the model (if required).
+    _loaded: bool = False
 
-        No other method should be called until callback(1) is called.
+    def load(self, callback: Callable[[float], None] = None):
+        """Synchronously starts loading the model (if required).
+
+        No other method should be called until this method returns.
 
         :param callback: a callback that will be called with the progress of the loading [0, 1].
         """
-        callback(1)
+        if callback:
+            callback(1)
+        self._loaded = True
+
+    def is_loaded(self) -> bool:
+        """Returns True if the model is loaded."""
+        return self._loaded
+
+    def unload(self):
+        """Unloads the model (if required)."""
+        self._loaded = False
 
     @abc.abstractmethod
     def track(self, img: np.ndarray, min_confidence: float = 0.5) -> (Optional[Detection], List[Detection]):

@@ -12,12 +12,19 @@ from kivy.lang import Builder
 from kivy.uix.settings import Settings
 from kivy.uix.widget import Widget
 
+from app.settings.register import register_settings_section_meta
+from app.settings.settings import SettingMetaNumeric
+from app.ui.controls import Controls
+from app.util.monitor import setup_monitor
+from app.util.photo import save_image_to_pictures
 from drone.api.drone import Drone
 from drone.api.status import Status
-from ui.app.controls import Controls
-from ui.util.monitor import setup_monitor
-from ui.util.photo import save_image_to_pictures
 from util.filesystem import source
+
+register_settings_section_meta('UI', 'User Interface', 1000, [
+    SettingMetaNumeric(None, None, 'Scale', 'The scale multiplier of the UI elements', 1.0),
+    SettingMetaNumeric(None, None, 'Opacity', 'The opacity multiplier of the UI elements', 1.0)
+], 'ui')
 
 
 class AppUI(Controls):
@@ -61,17 +68,17 @@ class AppUI(Controls):
             return self._ui_el_root
 
         # Import the modules, which are classes that represent a part of the UI.
-        import ui.app.modules
-        _ = ui.app.modules.BottomBar
+        import app.ui.modules
+        _ = app.ui.modules.BottomBar
 
         # Preload all KV files that are used by the app
-        for kv_dep in sorted(glob.glob(source('ui', 'app', 'kv', '**.kv'))):
+        for kv_dep in sorted(glob.glob(source('app', 'ui', 'kv', '**.kv'))):
             Logger.info('AppUI: Preloading KV file: {}'.format(kv_dep))
             Builder.load_file(kv_dep)
 
         # Load the root widget of the app
         Logger.info('AppUI: Loading main file')
-        self._ui_el_root = Builder.load_file(source('ui', 'app', 'ui.kv'))
+        self._ui_el_root = Builder.load_file(source('app', 'ui', 'appui.kv'))
         Logger.info('AppUI: Main file loaded: %s' % self._ui_el_root)
 
         # Provide dynamic access (recursively, flattening) to all named widgets in the UI (ui_el_<id> or ui_el(<id>)).
@@ -112,6 +119,9 @@ class AppUI(Controls):
         """Called when the app starts."""
         Logger.info('AppUI: on_start()')
 
+        # Make sure that all UI elements are properly in place (solve interdependencies by refreshing layouts)
+        self._ui_force_refresh_layouts(1)
+
         # Enable the performance graph if we are in debug mode
         if Logger.isEnabledFor(logging.DEBUG):  # Can be configured from the settings UI or file!
             setup_monitor(self.ui_el('top_bar'))
@@ -128,6 +138,7 @@ class AppUI(Controls):
         self.ui_el('joystick_left').disabled = False  # Quickly (also automatic) allow control while taking off
         self.ui_el('joystick_right').disabled = False
 
+    @mainthread
     def _ui_force_refresh_layouts(self, n: int):
         """Forces the UI to re-layout its elements."""
         self._ui_resizing_ignore = True
