@@ -124,7 +124,7 @@ jobs:
               # Complete installation by adding poetry to the path
               echo "/Users/runner/.local/bin" >> $GITHUB_PATH
               # Install dependencies
-              brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer
+              brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer ffmpeg
           # Windows x86_64
           - os: windows-latest
             deps: |
