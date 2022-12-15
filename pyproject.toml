@@ -19,13 +19,13 @@ tellopy = { git = "https://github.com/hanyazou/TelloPy", rev = "develop-0.7.0" }
 # TODO: dronekit??
 
 # AI
-# - OpenCV: computer vision
+# - OpenCV: computer vision algorithms
 opencv-python = "^4.6.0.66"
-# - Tensorflow: only tflite is required, and tensorflow (contains a faster tflite!) is only available under some conditions
-tflite-runtime = "^2.11.0"
+# - Tensorflow: machine learning platform (either tflite or tensorflow(-cpu/-gpu)? should be installed)
+tflite-runtime = { platform = 'linux', version = "^2.11.0" }
 tensorflow = [# TODO: Remove python version requirement when it is possible
-    { platform = 'windows', python = "<3.11", version = "<2.11.0" }, # Last version that works on Windows-native with GPU
-    { platform = 'linux', python = "<3.11", version = "^2.11.0" } # This does not seem to be using GPU, but is faster than tflite?!?
+    { platform = 'linux', python = "<3.11", version = "^2.11.0" }, # This does not seem to be using GPU, but is faster than tflite?!?
+    { markers = 'sys_platform != "linux"', python = "<3.11", version = "<2.11.0" }, # Last version that works on Windows-native with GPU
 ]
 
 # Network
