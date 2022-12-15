@@ -90,8 +90,9 @@ class StreamingVideoSource(threading.Thread, EventDispatcher):
             # Update and report stats
             self.stats_frame_time = (Clock.time() - start_time) * 0.5 + self.stats_frame_time * 0.5
             self.stats_frame_time_counter += 1
-            if self.stats_frame_time_counter % 1000 == 0:
-                Logger.info('Video: Total EMA frame time: ' + str(self.stats_frame_time))
+            if self.stats_frame_time_counter % 100 == 0:
+                Logger.info('Video: Avg frame time: %.3f (%.1f max FPS)' %
+                            (self.stats_frame_time, 1 / self.stats_frame_time))
                 self.stats_frame_time_counter = 0
 
         # Inform that the thread finished

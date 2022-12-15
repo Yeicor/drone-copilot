@@ -90,7 +90,6 @@ class AppUI(Controls):
         to_process = [el]
         while len(to_process) > 0:
             widget = to_process.pop()
-            Logger.debug('AppUI: Processing: {}: {}'.format(widget, widget.ids))
             for name, child in widget.ids.items():
                 Logger.debug('AppUI: Found named widget: %s' % name)
                 setattr(self, 'ui_el_' + name, child)

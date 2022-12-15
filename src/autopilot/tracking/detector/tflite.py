@@ -19,6 +19,7 @@
 
 """A module to run object detection with a TensorFlow Lite model."""
 import abc
+import multiprocessing
 import typing
 import zipfile
 from typing import List, NamedTuple, Optional
@@ -35,15 +36,16 @@ from util.filesystem import download_or_cache
 def load_tf_lite():
     """Loads the TensorFlow Lite library. This is implemented as a function to avoid slowing down startup."""
     try:
-        # Import TFLite interpreter from tflite_runtime package if it's available.
-        from tflite_runtime.interpreter import Interpreter
-        from tflite_runtime.interpreter import load_delegate
-    except ImportError:
-        # If not, fallback to use the TFLite interpreter from the full TF package.
+        # Try to import the TFLite interpreter from the tensorflow package first (GPU support!)
         import tensorflow as tf
-
+        Logger.info("Using tensorflow implementation with devices: %s" % tf.config.list_physical_devices())
+        # NOTE: importing these classes directly instead of through tf seems to disable optimizations (why?!)
         Interpreter = tf.lite.Interpreter
         load_delegate = tf.lite.experimental.load_delegate
+    except ImportError:
+        # Otherwise, import the TFLite interpreter from tflite_runtime package that should be available.
+        from tflite_runtime.interpreter import Interpreter
+        from tflite_runtime.interpreter import load_delegate
 
     return Interpreter, load_delegate
 
@@ -63,7 +65,7 @@ class TFLiteDetectorOptions(NamedTuple):
     label_deny_list: List[str] = None
     """The optional deny list of labels."""
 
-    num_threads: int = 4
+    num_threads: int = min(4, multiprocessing.cpu_count())  # 4 usually works better than more
     """The number of CPU threads to be used."""
 
 
@@ -154,9 +156,10 @@ class TFLiteDetector(Detector):
             self._interpreter = Interpreter(model_path=_model_path, num_threads=self._options.num_threads)
 
         self._interpreter.allocate_tensors()
+        Logger.info("TFLiteDetector: Model signature list: %s" % self._interpreter.get_signature_list())
 
         self.input_size, self._dtype = self._on_load_model(self._interpreter)
-        Logger.info('TFLiteDetector: input_size: %s, dtype: %s' % (str(self.input_size), self._dtype))
+        Logger.info('TFLiteDetector: Input size: %s, dtype: %s' % (str(self.input_size), self._dtype))
         super().load(callback)
 
     @abc.abstractmethod

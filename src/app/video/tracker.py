@@ -195,9 +195,9 @@ class Tracker(Widget):
             time_stats = (time_stats[0] + processing_time, time_stats[1] + 1)
 
             # Log stats every N frames
-            if time_stats[1] % 1000 == 0:
+            if time_stats[1] % 100 == 0:
                 frame_time = time_stats[0] / time_stats[1]
-                Logger.info(f'Tracker: Avg frame time: {frame_time:.2f}s ({1.0 / frame_time:.1f} max FPS)')
+                Logger.info(f'Tracker: Avg frame time: {frame_time:.3f}s ({1.0 / frame_time:.1f} max FPS)')
                 # "Moving average", reset counters
                 time_stats = (0, 0)
 

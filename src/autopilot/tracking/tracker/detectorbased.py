@@ -48,18 +48,19 @@ class DetectorBasedTrackerAny(DetectorBasedTracker):
     """
 
     def __init__(self, detector: Detector, category_filter: Optional[int] = None, confidence_score_weight: float = 1,
-                 dist_iou_score_weight: float = 2, min_score_weight: float = -1):
+                 dist_iou_score_weight: float = 2, min_score: float = -sys.float_info.max):
         """
         :param detector: the detector to use.
         :param category_filter: the category to track, or None to track any class.
         :param confidence_score_weight: the weight of the confidence in the score of the detection.
         :param dist_iou_score_weight: the weight of the "distance" [0, 1] to a previous detection in the score.
+        :param min_score: the minimum score to consider a detection valid.
         """
         super().__init__(detector)
         self.category_filter = category_filter
         self.confidence_weight = confidence_score_weight
         self.distance_weight = dist_iou_score_weight
-        self.min_score_weight = min_score_weight
+        self.min_score = min_score
         self.tracked = None
 
     def track_strategy(self, detections: List[Detection]) -> Optional[Detection]:
@@ -88,7 +89,7 @@ class DetectorBasedTrackerAny(DetectorBasedTracker):
             )
             score += iou * self.distance_weight
         # Apply minimum score filter
-        if score < self.min_score_weight:
+        if score < self.min_score:
             return -sys.float_info.max
         # Return score
         return score
