@@ -123,6 +123,15 @@ jobs:
             deps: |
               # Complete installation by adding poetry to the path
               echo "/Users/runner/.local/bin" >> $GITHUB_PATH
+              # Ensure python <3.11
+              brew list | grep python
+              brew install python@3.10
+              brew list | grep python
+              brew uninstall --ignore-dependencies python@3.11 python@3.8
+              brew list | grep python
+              # Reinstall poetry
+              curl -sSL https://install.python-poetry.org | python3 - --uninstall
+              curl -sSL https://install.python-poetry.org | python3 -
               # Install dependencies
               brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer ffmpeg
           # Windows x86_64
