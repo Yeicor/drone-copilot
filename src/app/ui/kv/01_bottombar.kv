@@ -54,12 +54,16 @@
             on_press: app.action_toggle_tracking()
             size_hint: 0.75, 0.25
             Image:
+                source: 'assets/keyboard/T_Key_Dark.png'
+                pos: self.parent.pos[0] + self.parent.width * (1/(4/(1.5/2)) - 1/3), self.parent.pos[1] + self.parent.height / (4/(1.5/2))
+                size: self.parent.width / 1.5, self.parent.height / 1.5
+            Image:
                 source: 'assets/controller/XboxSeriesX_Y.png'
                 pos: self.parent.pos[0] + self.parent.width * (1/(4/(1.5/2)) + 1/3), self.parent.pos[1] + self.parent.height / (4/(1.5/2))
                 size: self.parent.width / 1.5, self.parent.height / 1.5
         Button:
             id: tracking_settings_button
-            on_press: app.action_toggle_settings(force=True, menu='Kivy')  # TODO
+            on_press: app.action_toggle_settings(force=True, menu='Tracker')
             size_hint: 0.25, 0.25
             ShadowImage:
                 source: 'assets/other/settings.png'

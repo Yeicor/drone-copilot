@@ -30,7 +30,7 @@ from kivy import Logger
 from kivy.utils import platform
 
 from autopilot.tracking.detector.api import Detector, Detection, Category, Rect
-from util.filesystem import download_or_cache
+from util.filesystem import download
 
 
 def load_tf_lite():
@@ -67,6 +67,9 @@ class TFLiteDetectorOptions(NamedTuple):
 
     num_threads: int = min(4, multiprocessing.cpu_count())  # 4 usually works better than more
     """The number of CPU threads to be used."""
+
+    non_max_suppression_threshold: Optional[float] = 0.95
+    """The threshold for non-max suppression (removing duplicate detections)."""
 
 
 def libedgetpu_name():
@@ -118,6 +121,7 @@ class TFLiteDetector(Detector):
         self._dtype: Optional[any] = None
 
     def load(self, callback: typing.Callable[[float], None] = None):
+        Logger.info(f'TFLiteDetector: Loading model from {self._model_path}')
         callback = callback or (lambda x: None)
         # noinspection PyPep8Naming
         Interpreter, load_delegate = load_tf_lite()
@@ -125,7 +129,7 @@ class TFLiteDetector(Detector):
         # Download the model if it's a remote URL.
         callback(0.01)
         if self._model_path.startswith('http'):
-            _model_path = download_or_cache(url=self._model_path, progress=lambda p: callback(p * 0.9))
+            _model_path = download(url=self._model_path, progress=lambda p: callback(p * 0.9))
         else:
             _model_path = self._model_path
         callback(0.9)
@@ -246,8 +250,13 @@ class TFLiteDetector(Detector):
         for i in range(count):
             if scores[i] >= min_confidence:
                 y_min, x_min, y_max, x_max = boxes[i]
-                bounding_box = Rect(x_min=(x_min - added_x) / scaled_x, y_min=(y_min - added_y) / scaled_y,
-                                    x_max=(x_max - added_x) / scaled_x, y_max=(y_max - added_y) / scaled_y)
+                # Move the bounding box according to the padding and scaling.
+                x_min = ((x_min - added_x) / scaled_x)
+                x_max = ((x_max - added_x) / scaled_x)
+                y_min = ((y_min - added_y) / scaled_y)
+                y_max = ((y_max - added_y) / scaled_y)
+                # Append to the temporary results list.
+                bounding_box = Rect(x_min=x_min, y_min=y_min, x_max=x_max, y_max=y_max)
                 category_id = int(classes[i])
                 category_label = self._labels[category_id] if 0 <= category_id < len(self._labels) else ""
                 category = Category(label=category_label, id=category_id)
@@ -267,6 +276,17 @@ class TFLiteDetector(Detector):
         if self._options.label_allow_list is not None:
             filtered_results = list(filter(
                 lambda detection: detection.categories[0].label in self._options.label_allow_list, filtered_results))
+
+        # Execute non-maximum suppression to remove overlapping bounding boxes, if enabled.
+        if self._options.non_max_suppression_threshold is not None:
+            boxes_to_filter = np.ndarray(shape=(0, 4), dtype=np.float32)
+            for result in reversed(filtered_results):  # Last element is prioritized in non-max suppression
+                bb = result.bounding_box
+                boxes_to_filter = np.append(boxes_to_filter,
+                                            np.array([bb.x_min, bb.y_min, bb.x_max, bb.y_max]).reshape((1, 4)), axis=0)
+            _, picked = non_max_suppression_fast(boxes_to_filter, self._options.non_max_suppression_threshold)
+            tmp = [filtered_results[len(boxes_to_filter) - 1 - i] for i in picked]  # reversed
+            filtered_results = tmp
 
         # Only return maximum of max_results detection.
         if max_results > 0:
@@ -298,3 +318,77 @@ class TFLiteEfficientDetDetector(TFLiteDetector):
             self._get_output_tensor(self._output_score_index),
             int(self._get_output_tensor(self._output_number_index))
         )
+
+
+class TFLiteYoloV5Detector(TFLiteDetector):
+    """A TFLite detector for YoloV5 models."""
+
+    def __init__(self, model_path: str = 'https://tfhub.dev/neso613/lite-model/'
+                                         'yolo-v5-tflite/tflite_model/1?lite-format=tflite',
+                 options=TFLiteDetectorOptions()):
+        super().__init__(model_path, None, options)
+
+    def _on_load_model(self, interpreter: 'Interpreter') -> ((int, int), bool):
+        Logger.info("Loading YoloV5 model with metadata:")
+        Logger.info(interpreter.get_input_details())
+        Logger.info(interpreter.get_output_details())
+        sorted_output_details_by_index = sorted(interpreter.get_output_details(), key=lambda detail: detail['index'])
+        self._output_identity = sorted_output_details_by_index[0]['index']
+        return super()._on_load_model(interpreter)
+
+    def _get_output_tensors(self) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+        output_data = self._get_output_tensor(self._output_identity)
+        xywh = output_data[..., :4]  # boxes  [25200, 4]
+        conf = np.ravel(output_data[..., 4:5])  # confidences  [25200]
+        cls = np.argmax(output_data[..., 5:], axis=1).astype(np.float32)  # [25200]
+        # Convert nx4 boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+        x, y, w, h = xywh[..., 0], xywh[..., 1], xywh[..., 2], xywh[..., 3]  # xywh
+        yxyx = np.column_stack([y - h / 2, x - w / 2, y + h / 2, x + w / 2])  # xywh to xyxy   [25200, 4]`
+        return yxyx, cls, conf, yxyx.shape[0]
+
+
+# Malisiewicz et al.
+def non_max_suppression_fast(boxes: np.ndarray, overlapThresh: float) -> (np.ndarray, np.ndarray):
+    # if there are no boxes, return an empty list
+    if len(boxes) == 0:
+        return np.array([]), np.array([])
+    # if the bounding boxes integers, convert them to floats --
+    # this is important since we'll be doing a bunch of divisions
+    if boxes.dtype.kind == "i":
+        boxes = boxes.astype("float")
+    # initialize the list of picked indexes
+    pick = []
+    # grab the coordinates of the bounding boxes
+    x1 = boxes[:, 0]
+    y1 = boxes[:, 1]
+    x2 = boxes[:, 2]
+    y2 = boxes[:, 3]
+    # compute the area of the bounding boxes and sort the bounding
+    # boxes by the bottom-right y-coordinate of the bounding box
+    area = (x2 - x1 + 1) * (y2 - y1 + 1)
+    idxs = np.argsort(y2)
+    # keep looping while some indexes still remain in the indexes
+    # list
+    while len(idxs) > 0:
+        # grab the last index in the indexes list and add the
+        # index value to the list of picked indexes
+        last = len(idxs) - 1
+        i = idxs[last]
+        pick.append(i)
+        # find the largest (x, y) coordinates for the start of
+        # the bounding box and the smallest (x, y) coordinates
+        # for the end of the bounding box
+        xx1 = np.maximum(x1[i], x1[idxs[:last]])
+        yy1 = np.maximum(y1[i], y1[idxs[:last]])
+        xx2 = np.minimum(x2[i], x2[idxs[:last]])
+        yy2 = np.minimum(y2[i], y2[idxs[:last]])
+        # compute the width and height of the bounding box
+        w = np.maximum(0, xx2 - xx1 + 1)
+        h = np.maximum(0, yy2 - yy1 + 1)
+        # compute the ratio of overlap
+        overlap = (w * h) / area[idxs[:last]]
+        # delete all indexes from the index list that have
+        idxs = np.delete(idxs, np.concatenate(([last], np.where(overlap > overlapThresh)[0])))
+    # return only the bounding boxes that were picked using the
+    # integer data type
+    return boxes[pick], pick

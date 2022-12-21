@@ -8,21 +8,8 @@ class SettingMeta(abc.ABC):
     """
     Stores metadata about a setting.
     """
-
-    section: Optional[str]
-    """The section of the settings page where this setting should be displayed.
-    """
-
-    key: Optional[str]
-    """The key of the setting.
-    """
-
     title: str
     """The name of the setting.
-    """
-
-    desc: str
-    """The description of the setting.
     """
 
     default: any
@@ -31,19 +18,47 @@ class SettingMeta(abc.ABC):
 
 
 @dataclass
+class SettingMetaTitle(SettingMeta):
+    type: str = "title"
+
+@dataclass
 class SettingMetaString(SettingMeta):
-    default: str
+    section: Optional[str]
+    """The section of the settings page where this setting should be displayed.
+    """
+    key: Optional[str]
+    """The key of the setting.
+    """
+    desc: str
+    """The description of the setting.
+    """
     type: str = "string"
 
 
 @dataclass
 class SettingMetaNumeric(SettingMeta):
-    default: float
+    section: Optional[str]
+    """The section of the settings page where this setting should be displayed.
+    """
+    key: Optional[str]
+    """The key of the setting.
+    """
+    desc: str
+    """The description of the setting.
+    """
     type: str = "numeric"
 
 
 @dataclass
 class SettingMetaOptions(SettingMeta):
-    default: str
+    section: Optional[str]
+    """The section of the settings page where this setting should be displayed.
+    """
+    key: Optional[str]
+    """The key of the setting.
+    """
+    desc: str
+    """The description of the setting.
+    """
     options: List[str]
     type: str = "options"

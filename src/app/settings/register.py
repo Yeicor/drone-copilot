@@ -1,6 +1,6 @@
 from typing import List, Tuple, Dict
 
-from app.settings.settings import SettingMeta
+from app.settings.settings import SettingMeta, SettingMetaTitle
 
 _settings_metadata: Dict[str, List[Tuple[str, str, int, List[SettingMeta]]]] = {}
 
@@ -21,7 +21,11 @@ def register_settings_section_meta(title: str, section: str, priority: int, meta
         m.section = section_id
         m.key = m.key or m.title.lower()
     insert_at = binary_search([m[2] for m in _settings_metadata[title]], 0, len(_settings_metadata[title]), priority)
+    print(f"Inserting {section} at {insert_at}, length is {len(_settings_metadata[title])}")
+    meta = [SettingMetaTitle(section, section_id)] + meta  # Prepend the section title.
     _settings_metadata[title].insert(insert_at, (section, section_id, priority, meta))
+    print("Length is now", len(_settings_metadata[title]))
+    print(_settings_metadata[title])
 
 
 def binary_search(s: List[any], p: int, q: int, find: any) -> int:

@@ -35,7 +35,7 @@ requests = "^2.28.1"
 plyer = "^2.1.0" # Cross-platform utilities
 ffpyplayer = "^4.3.5" # Video player
 Pillow = "^9.3.0" # Image processing
-camera4kivy = "^0.1.0" # TODO: Remove when replaced
+camera4kivy = "^0.1.0" # Webcam support
 
 [tool.poetry.group.build-mobile] # poetry install --with build-mobile --without main
 optional = true

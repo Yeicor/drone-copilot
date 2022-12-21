@@ -4,11 +4,11 @@ from typing import List, Type, Optional, Callable
 from kivy import Logger
 from kivy.config import ConfigParser
 
+from app.settings.register import register_settings_section_meta
+from app.settings.settings import SettingMetaOptions, SettingMetaString, SettingMetaNumeric
 from drone.api.drone import Drone
 from drone.tello.drone import TelloDrone
 from drone.test.drone import TestDrone
-from app.settings.register import register_settings_section_meta
-from app.settings.settings import SettingMetaOptions, SettingMetaString, SettingMetaNumeric
 
 # TODO: Add a test drone driver that explores a safe virtual environment
 
@@ -17,15 +17,13 @@ _drone_classes: List[Type[Drone]] = [TestDrone, TelloDrone]
 
 # Also register the settings to configure the connection to a drone
 register_settings_section_meta('Connection', 'Connection (restart required)', 0, [
-    SettingMetaOptions(None, None, 'Drone', 'The drone model to control',
-                       _drone_classes[0].get_name() if len(_drone_classes) > 0 else 'ERR:NoDroneClassRegistered!',
-                       [d.get_name() for d in _drone_classes]),
-    SettingMetaString(None, None, 'URL', 'The URL to connect to. Check the documentation of the drone.',
-                      'tcp://192.168.10.1:8889'),
-    SettingMetaNumeric(None, None, 'Timeout', 'The timeout in seconds to connect to the drone.', 12.0),
-    SettingMetaString(None, None, 'Extra',
-                      'Extra data in json format specific to the drone. Check the documentation of the drone.',
-                      '{"video_url": "udp://0.0.0.0:11111"}'),
+    SettingMetaOptions('Drone', _drone_classes[0].get_name() if len(_drone_classes) > 0 else 'ERR:NoDroneRegistered!',
+                       None, None, 'The drone model to control', [d.get_name() for d in _drone_classes]),
+    SettingMetaString('URL', 'tcp://192.168.10.1:8889', None, None,
+                      'The URL to connect to. Check the documentation of the drone.'),
+    SettingMetaNumeric('Timeout', 12.0, None, None, 'The timeout in seconds to connect to the drone.'),
+    SettingMetaString('Extra', '{"video_url": "udp://0.0.0.0:11111"}', None, None,
+                      'Extra data in json format specific to the drone. Check the documentation of the drone.'),
 ], 'connection')
 
 

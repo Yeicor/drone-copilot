@@ -11,11 +11,20 @@ from kivy.metrics import pt
 from kivy.properties import ObjectProperty
 from kivy.uix.widget import Widget
 
-from autopilot.tracking.detector.api import Detection
-from autopilot.tracking.detector.tflite import TFLiteEfficientDetDetector
-from autopilot.tracking.tracker.api import Tracker as TrackerAPI
-from autopilot.tracking.tracker.detectorbased import DetectorBasedTrackerAny
+import autopilot.tracking.detector.registry as detector_registry
+from app.settings.register import register_settings_section_meta
+from app.settings.settings import SettingMetaOptions
 from app.video.video import MyVideo
+from autopilot.tracking.detector.api import Detection
+from autopilot.tracking.tracker.api import Tracker as TrackerAPI
+
+register_settings_section_meta('Tracker', 'Detector', 1000, [  # TODO: A nice detector and tracker settings page
+    SettingMetaOptions('Detector', 'TFLiteYoloV5Detector', None, None, 'The detector implementation',
+                       [det.__class__.__name__ for det in detector_registry.registry]),
+], 'tracker')
+register_settings_section_meta('Tracker', 'Tracker', 2000, [  # FIXME: Hides other settings
+    SettingMetaOptions('Tracker', 'TODO', None, None, 'The tracker implementation', ['TODO']),
+], 'tracker')
 
 
 class Tracker(Widget):
@@ -28,7 +37,7 @@ class Tracker(Widget):
     video: MyVideo = ObjectProperty(None, allownone=True)
     """The background video element, used to get the video position and dimensions to apply the overlay."""
 
-    def __init__(self, tracker: TrackerAPI, **kwargs):  # , depth_estimator: DepthEstimator
+    def __init__(self, tracker: TrackerAPI = None, **kwargs):  # , depth_estimator: DepthEstimator
         super().__init__(**kwargs)
         self._tracker = tracker
         # self._depth_estimator = depth_estimator
@@ -205,10 +214,3 @@ class Tracker(Widget):
             Logger.info('Tracker: Unloading...')
             self._tracker.unload()
         Logger.info('Tracker: _bg_thread() stopped')
-
-
-class DefaultTracker(Tracker):
-    """An implementation of the Tracker class which selects default algorithms and configurations."""
-
-    def __init__(self, **kwargs):
-        super().__init__(DetectorBasedTrackerAny(TFLiteEfficientDetDetector()), **kwargs)
