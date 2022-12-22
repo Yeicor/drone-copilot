@@ -296,12 +296,25 @@ class TFLiteDetector(Detector):
         return filtered_results
 
 
-class TFLiteEfficientDetDetector(TFLiteDetector):
+class TFLiteEfficientDetLiteDetector(TFLiteDetector):
     """A TFLite detector for EfficientDet models."""
 
-    def __init__(self, model_path: str = 'https://github.com/Yeicor/drone-copilot/releases/download/models/'
-                                         'efficientdet_lite0.tflite', options=TFLiteDetectorOptions()):
+    def __init__(self, model_path: str = None, options=TFLiteDetectorOptions(),
+                 tfhub_model_override: int = None):
+        if model_path is None:  # Default to TFHub model Lite0
+            tfhub_model_override = tfhub_model_override or 0
+        if tfhub_model_override is not None:  # Use TFHub model
+            model_id = str(tfhub_model_override) if tfhub_model_override >= 0 else "3x"
+            self._display_name = f"EfficientDet-Lite{model_id}"
+            model_path = 'https://tfhub.dev/tensorflow/lite-model/efficientdet/lite' + model_id \
+                         + '/detection/metadata/1?lite-format=tflite'
+        else:
+            self._display_name = "EfficientDet-Lite (%s)" % model_path
         super().__init__(model_path, None, options)
+
+    @property
+    def name(self) -> str:
+        return self._display_name
 
     def _on_load_model(self, interpreter: 'Interpreter') -> ((int, int), bool):
         sorted_output_details_by_index = sorted(interpreter.get_output_details(), key=lambda detail: detail['index'])
@@ -323,10 +336,18 @@ class TFLiteEfficientDetDetector(TFLiteDetector):
 class TFLiteYoloV5Detector(TFLiteDetector):
     """A TFLite detector for YoloV5 models."""
 
-    def __init__(self, model_path: str = 'https://tfhub.dev/neso613/lite-model/'
-                                         'yolo-v5-tflite/tflite_model/1?lite-format=tflite',
+    def __init__(self, model_path: str = None,
                  options=TFLiteDetectorOptions()):
+        if model_path is None:  # Default to TFHub model
+            model_path = 'https://tfhub.dev/neso613/lite-model/yolo-v5-tflite/tflite_model/1?lite-format=tflite'
+            self._display_name = "YoloV5"
+        else:
+            self._display_name = "YoloV5 (%s)" % model_path
         super().__init__(model_path, None, options)
+
+    @property
+    def name(self) -> str:
+        return self._display_name
 
     def _on_load_model(self, interpreter: 'Interpreter') -> ((int, int), bool):
         Logger.info("Loading YoloV5 model with metadata:")

@@ -10,20 +10,19 @@ from drone.api.drone import Drone
 from drone.tello.drone import TelloDrone
 from drone.test.drone import TestDrone
 
-# TODO: Add a test drone driver that explores a safe virtual environment
-
 # Provide the drone connection initializer for each supported drone
 _drone_classes: List[Type[Drone]] = [TestDrone, TelloDrone]
 
 # Also register the settings to configure the connection to a drone
 register_settings_section_meta('Connection', 'Connection (restart required)', 0, [
-    SettingMetaOptions('Drone', _drone_classes[0].get_name() if len(_drone_classes) > 0 else 'ERR:NoDroneRegistered!',
-                       None, None, 'The drone model to control', [d.get_name() for d in _drone_classes]),
-    SettingMetaString('URL', 'tcp://192.168.10.1:8889', None, None,
-                      'The URL to connect to. Check the documentation of the drone.'),
-    SettingMetaNumeric('Timeout', 12.0, None, None, 'The timeout in seconds to connect to the drone.'),
-    SettingMetaString('Extra', '{"video_url": "udp://0.0.0.0:11111"}', None, None,
-                      'Extra data in json format specific to the drone. Check the documentation of the drone.'),
+    SettingMetaOptions.create('Drone', 'The drone model to control', [d.get_name() for d in _drone_classes],
+                              _drone_classes[0].get_name() if len(_drone_classes) > 0 else 'ERR:NoDroneRegistered!'),
+    SettingMetaString.create('URL', 'The URL to connect to. Check the documentation of the drone.',
+                             'tcp://192.168.10.1:8889'),
+    SettingMetaNumeric.create('Timeout', 'The timeout in seconds to connect to the drone.', 12.0),
+    SettingMetaString.create('Extra',
+                             'Extra data in json format specific to the drone. Check the documentation of the drone.',
+                             '{"video_url": "udp://0.0.0.0:11111"}'),
 ], 'connection')
 
 

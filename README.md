@@ -10,16 +10,18 @@
     - [x] Test: a fully-featured virtual drone that flies in a 3D environment for development and testing.
     - [x] Add support for your drone simply by implementing [the core API](src/drone/api).
 - [x] Object tracking and following:
-    - [x] Locate objects in an
-      image: [EfficientDet-Lite0](https://tfhub.dev/tensorflow/lite-model/efficientdet/lite0/detection/metadata/1)
-      provides realtime detection of 90 kinds of objects.
+    - [x] Real time detection of lots of objects (people, vehicles, animals, etc.) on each frame.
+        - [x] Different trained models balancing speed and accuracy:
+          [EfficientDet-Lite\[0-4\]](https://tfhub.dev/tensorflow/lite-model/efficientdet/lite0/detection/metadata/1),
+          [YoloV5](https://tfhub.dev/neso613/lite-model/yolo-v5-tflite/tflite_model/1)...
     - [x] Tracking over multiple frames: simple scoring system based on distance and intersection over union.
     - [ ] Select the object to track by clicking on its detection box.
     - [ ] Make the drone automatically follow tracked objects with customizable constraints.
 - [ ] Simultaneous Localization And Mapping (SLAM):
-    - [ ] Depth estimation and visualization for the drone's camera.
+    - [ ] Monocular depth estimation and visualization.
+    - [ ] [...]
 
-<sup>1</sup> Not tested, minor modifications may be required (help is appreciated).
+<sup>1</sup> These platforms are not tested, minor modifications may be required (help is appreciated).
 
 ## Building
 

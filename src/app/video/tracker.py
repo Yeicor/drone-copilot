@@ -17,13 +17,25 @@ from app.settings.settings import SettingMetaOptions
 from app.video.video import MyVideo
 from autopilot.tracking.detector.api import Detection
 from autopilot.tracking.tracker.api import Tracker as TrackerAPI
+from autopilot.tracking.tracker.detectorbased import DetectorBasedTrackerAny
 
-register_settings_section_meta('Tracker', 'Detector', 1000, [  # TODO: A nice detector and tracker settings page
-    SettingMetaOptions('Detector', 'TFLiteYoloV5Detector', None, None, 'The detector implementation',
-                       [det.__class__.__name__ for det in detector_registry.registry]),
+
+def on_change_tracker_detector_settings(tracker: str):
+    Logger.info('Tracker: on_change_tracker_detector_settings: %s' % tracker)
+    new_detector = [det for det in detector_registry.registry if det.name == tracker][0]
+    tracker_ui = App.get_running_app().ui_el('tracker')
+    tracker_ui.tracker = DetectorBasedTrackerAny(new_detector)  # TODO: Also swap tracker at runtime
+    # Logger.warning('Tracker: on_change_tracker_detector_settings: No detector found on tracker')
+
+
+# TODO: A nice detector and tracker settings page (+ dynamic settings?)
+register_settings_section_meta('Tracker', 'Detector', 1000, [
+    SettingMetaOptions.create('Detector', 'The detector implementation',
+                              [det.name for det in detector_registry.registry],
+                              detector_registry.registry[0].name, on_change=on_change_tracker_detector_settings),
 ], 'tracker')
-register_settings_section_meta('Tracker', 'Tracker', 2000, [  # FIXME: Hides other settings
-    SettingMetaOptions('Tracker', 'TODO', None, None, 'The tracker implementation', ['TODO']),
+register_settings_section_meta('Tracker', 'Tracker', 2000, [
+    SettingMetaOptions.create('Tracker', 'The tracker implementation', ['TODO'], 'TODO'),
 ], 'tracker')
 
 
@@ -49,6 +61,20 @@ class Tracker(Widget):
         self._load_progress: Optional[float] = None
         # Event listeners
         self.register_event_type('on_track')
+
+    @property
+    def tracker(self):
+        return self._tracker
+
+    @tracker.setter
+    def tracker(self, tracker: TrackerAPI):
+        """Sets the tracker implementation."""
+        is_running = self.is_running()
+        if is_running:
+            self.stop()
+        self._tracker = tracker
+        if is_running:
+            self.start()
 
     def feed(self, img: np.ndarray):
         """Feeds the tracker with a new image.

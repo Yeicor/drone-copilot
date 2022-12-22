@@ -22,8 +22,8 @@ from drone.api.status import Status
 from util.filesystem import source
 
 register_settings_section_meta('UI', 'User Interface', 1000, [
-    SettingMetaNumeric('Scale', 1.0, None, None, 'The scale multiplier of the UI elements'),
-    SettingMetaNumeric('Opacity', 1.0, None, None, 'The opacity multiplier of the UI elements')
+    SettingMetaNumeric.create('Scale', 'The scale multiplier of the UI elements', 1.0),
+    SettingMetaNumeric.create('Opacity', 'The opacity multiplier of the UI elements', 1.0)
 ], 'ui')
 
 

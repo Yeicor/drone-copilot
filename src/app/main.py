@@ -7,15 +7,15 @@ from kivy.app import App as KivyApp
 from kivy.config import ConfigParser
 from kivy.uix.settings import SettingsWithSpinner, Settings
 
+from app.settings.registry import get_settings_meta, get_settings_defaults, handle_settings_change
+from app.ui.appui import AppUI
+from app.util.photo import save_image_to_pictures
+from app.video.tracker import Tracker
 from autopilot.tracking.detector.api import Detection
 from drone.api.camera import Camera
 from drone.api.drone import Drone
 from drone.api.status import Status
 from drone.registry import drone_connect_auto
-from app.ui.appui import AppUI
-from app.settings.registry import get_settings_meta, get_settings_defaults
-from app.util.photo import save_image_to_pictures
-from app.video.tracker import Tracker
 from util.androidhacks import setup as androidhacks_setup
 
 
@@ -49,7 +49,7 @@ class App(KivyApp, AppUI):
     def name(self):
         return 'drone_copilot'  # No spaces, no special characters
 
-    def build_settings(self, settings):
+    def build_settings(self, settings):  # Build the settings UI panel
         for title, data in get_settings_meta().items():
             settings.add_json_panel(title, self.config, data=data)
 
@@ -58,12 +58,16 @@ class App(KivyApp, AppUI):
             config.setdefaults(k, v)
 
     def on_config_change(self, *args):
-        Logger.info('DroneCopilotApp: TODO: config changed: %s' % (args,))
+        handle_settings_change(*args[1:])
 
     def load_kv(self, filename=None):
         # Use AppUI to load the root widget, instead of KivyApp
         Logger.info('DroneCopilotApp: load_kv()')
         self.root = self.ui_build()
+        # Also run the listeners for all the loaded config values
+        for section in self.config.sections():
+            for key, value in self.config.items(section):
+                handle_settings_change(section, key, value)
         return True
 
     # ==================== UI method implementations ====================

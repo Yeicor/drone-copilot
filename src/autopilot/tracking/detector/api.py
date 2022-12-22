@@ -56,6 +56,12 @@ class Detector(abc.ABC):
 
     _loaded = False
 
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        """Returns the display name of the detector."""
+        return "Unnamed"
+
     def load(self, callback: Callable[[float], None] = None):
         """Synchronously starts loading the model (if required).
 
