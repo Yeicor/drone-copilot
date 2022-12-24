@@ -1,6 +1,6 @@
 import abc
 from dataclasses import dataclass
-from typing import Optional, List, Callable
+from typing import Optional, List
 
 
 @dataclass
@@ -16,10 +16,6 @@ class SettingMeta(abc.ABC):
     """The default value of the setting.
     """
 
-    on_change: Optional[Callable[[str], None]]
-    """A callback that is called when the setting is changed. Also called on app startup with initial value.
-    """
-
 
 @dataclass
 class SettingMetaTitle(SettingMeta):
@@ -27,7 +23,7 @@ class SettingMetaTitle(SettingMeta):
 
     @staticmethod
     def create(title: str):
-        return SettingMetaTitle(title, '', None)
+        return SettingMetaTitle(title, '')
 
 
 @dataclass
@@ -44,9 +40,8 @@ class SettingMetaString(SettingMeta):
     type: str = "string"
 
     @staticmethod
-    def create(title: str, desc: str, default: str, section: Optional[str] = None, key: Optional[str] = None,
-               on_change: Optional[Callable[[str], None]] = None):
-        return SettingMetaString(title, default, on_change, section, key, desc)
+    def create(title: str, desc: str, default: str, section: Optional[str] = None, key: Optional[str] = None):
+        return SettingMetaString(title, default, section, key, desc)
 
 
 @dataclass
@@ -63,9 +58,8 @@ class SettingMetaNumeric(SettingMeta):
     type: str = "numeric"
 
     @staticmethod
-    def create(title: str, desc: str, default: any, section: Optional[str] = None, key: Optional[str] = None,
-               on_change: Optional[Callable[[str], None]] = None):
-        return SettingMetaNumeric(title, default, on_change, section, key, desc)
+    def create(title: str, desc: str, default: any, section: Optional[str] = None, key: Optional[str] = None):
+        return SettingMetaNumeric(title, default, section, key, desc)
 
 
 @dataclass
@@ -86,5 +80,5 @@ class SettingMetaOptions(SettingMeta):
 
     @staticmethod
     def create(title: str, desc: str, options: List[str], default: str, section: Optional[str] = None,
-               key: Optional[str] = None, on_change: Optional[Callable[[str], None]] = None):
-        return SettingMetaOptions(title, default, on_change, section, key, desc, options)
+               key: Optional[str] = None):
+        return SettingMetaOptions(title, default, section, key, desc, options)

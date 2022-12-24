@@ -12,27 +12,18 @@ from kivy.properties import ObjectProperty
 from kivy.uix.widget import Widget
 
 import autopilot.tracking.detector.registry as detector_registry
-from app.settings.register import register_settings_section_meta
+from app.settings.register import register_settings_section_meta, settings_on_change
 from app.settings.settings import SettingMetaOptions
 from app.video.video import MyVideo
 from autopilot.tracking.detector.api import Detection
 from autopilot.tracking.tracker.api import Tracker as TrackerAPI
 from autopilot.tracking.tracker.detectorbased import DetectorBasedTrackerAny
 
-
-def on_change_tracker_detector_settings(tracker: str):
-    Logger.info('Tracker: on_change_tracker_detector_settings: %s' % tracker)
-    new_detector = [det for det in detector_registry.registry if det.name == tracker][0]
-    tracker_ui = App.get_running_app().ui_el('tracker')
-    tracker_ui.tracker = DetectorBasedTrackerAny(new_detector)  # TODO: Also swap tracker at runtime
-    # Logger.warning('Tracker: on_change_tracker_detector_settings: No detector found on tracker')
-
-
 # TODO: A nice detector and tracker settings page (+ dynamic settings?)
 register_settings_section_meta('Tracker', 'Detector', 1000, [
     SettingMetaOptions.create('Detector', 'The detector implementation',
                               [det.name for det in detector_registry.registry],
-                              detector_registry.registry[0].name, on_change=on_change_tracker_detector_settings),
+                              detector_registry.registry[0].name),
 ], 'tracker')
 register_settings_section_meta('Tracker', 'Tracker', 2000, [
     SettingMetaOptions.create('Tracker', 'The tracker implementation', ['TODO'], 'TODO'),
@@ -59,8 +50,15 @@ class Tracker(Widget):
         self._new_img_lock = Lock()
         self._img = None
         self._load_progress: Optional[float] = None
-        # Event listeners
+        # Events
         self.register_event_type('on_track')
+        settings_on_change('tracker', 'detector', self._on_change_tracker_detector_settings)
+
+    def _on_change_tracker_detector_settings(self, tracker: str):
+        Logger.info('Tracker: on_change_tracker_detector_settings: %s' % tracker)
+        new_detector = [det for det in detector_registry.registry if det.name == tracker][0]
+        self.tracker = DetectorBasedTrackerAny(new_detector)  # TODO: Also swap tracker at runtime
+        # Logger.warning('Tracker: on_change_tracker_detector_settings: No detector found on tracker')
 
     @property
     def tracker(self):

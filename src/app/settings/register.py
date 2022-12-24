@@ -1,4 +1,6 @@
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Callable
+
+from kivy.app import App
 
 from app.settings.settings import SettingMeta, SettingMetaTitle
 
@@ -45,3 +47,21 @@ def binary_search(s: List[any], p: int, q: int, find: any) -> int:
         return binary_search(s, p, midpoint, find)
     elif find > s_midpoint:
         return binary_search(s, midpoint + 1, q, find)
+
+
+def settings_on_change(section: str, key: str, handler: Callable[[str], None], call_now: bool = True):
+    """
+    Registers a handler to be called when a setting is changed.
+    :param section: the section of the setting.
+    :param key: the key of the setting.
+    :param handler: the handler to be called when the setting is changed.
+    :param call_now: whether to call the handler immediately.
+    """
+
+    def handler_wrapper(_app: App, _parser: any, section2: str, key2: str, value: str):
+        if section2 == section and key2 == key:
+            handler(value)
+
+    App.get_running_app().bind(on_config_change=handler_wrapper)
+    if call_now:
+        handler(App.get_running_app().config.get(section, key))

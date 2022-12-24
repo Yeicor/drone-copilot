@@ -13,7 +13,15 @@ class DetectorBasedTracker(Tracker, ABC):
 
     def __init__(self, detector: Detector):
         super().__init__()
-        self.detector = detector
+        self._detector = detector
+
+    @property
+    def detector(self) -> Optional['Detector']:
+        return self._detector
+
+    @detector.setter
+    def detector(self, detector: 'Detector'):
+        self._detector = detector
 
     def load(self, callback: Callable[[float], None] = None):
         self.detector.load(lambda pr: callback(pr * 0.99))
@@ -62,6 +70,10 @@ class DetectorBasedTrackerAny(DetectorBasedTracker):
         self.distance_weight = dist_iou_score_weight
         self.min_score = min_score
         self.tracked = None
+
+    @property
+    def name(self) -> str:
+        return 'DetectorBasedTrackerAny'
 
     def track_strategy(self, detections: List[Detection]) -> Optional[Detection]:
         if len(detections) == 0:

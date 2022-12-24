@@ -7,7 +7,7 @@ from kivy.app import App as KivyApp
 from kivy.config import ConfigParser
 from kivy.uix.settings import SettingsWithSpinner, Settings
 
-from app.settings.registry import get_settings_meta, get_settings_defaults, handle_settings_change
+from app.settings.registry import get_settings_meta, get_settings_defaults
 from app.ui.appui import AppUI
 from app.util.photo import save_image_to_pictures
 from app.video.tracker import Tracker
@@ -57,17 +57,10 @@ class App(KivyApp, AppUI):
         for k, v in get_settings_defaults().items():
             config.setdefaults(k, v)
 
-    def on_config_change(self, *args):
-        handle_settings_change(*args[1:])
-
     def load_kv(self, filename=None):
         # Use AppUI to load the root widget, instead of KivyApp
         Logger.info('DroneCopilotApp: load_kv()')
         self.root = self.ui_build()
-        # Also run the listeners for all the loaded config values
-        for section in self.config.sections():
-            for key, value in self.config.items(section):
-                handle_settings_change(section, key, value)
         return True
 
     # ==================== UI method implementations ====================
@@ -78,14 +71,6 @@ class App(KivyApp, AppUI):
             self._my_app_settings = self.create_settings()
             created = True
         return self._my_app_settings, created
-
-    @property
-    def ui_scale(self) -> float:
-        return float(self.config.get('ui', 'scale'))
-
-    @property
-    def ui_opacity(self) -> float:
-        return float(self.config.get('ui', 'opacity'))
 
     # ==================== LISTENERS & HANDLERS ====================
     def on_start(self):

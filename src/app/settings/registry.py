@@ -3,7 +3,6 @@ import json
 from typing import Dict
 
 import numpy as np
-from kivy import Logger
 
 
 # noinspection PyTypeChecker
@@ -24,8 +23,6 @@ def get_settings_meta() -> {str: str}:
         for section in sections:
             if "default" in section:
                 del section["default"]
-            if "on_change" in section:
-                del section["on_change"]
     # Serialize the dictionary of lists to a JSON string.
     meta_dict = {title: json.dumps(sublist) for title, sublist in dict_of_lists.items()}
     return meta_dict
@@ -47,27 +44,3 @@ def get_settings_defaults() -> Dict[str, Dict[str, any]]:
                      for k, v in dict_of_dicts.items()}
     # print(dict_of_dicts)
     return dict_of_dicts
-
-
-def handle_settings_change(section: str, key: str, value: str):
-    """
-    Handle a settings change.
-    :param section: the section of the setting.
-    :param key: the key of the setting.
-    :param value: the new value of the setting.
-    """
-    from app.settings.register import _settings_metadata
-    # Find the setting.
-    found = False
-    for title, sections in _settings_metadata.items():
-        for section2, section_id, priority, meta in sections:
-            for m in meta:
-                if getattr(m, 'section', None) == section and getattr(m, 'key', None) == key:
-                    found = True
-                    # Call the on_change function.
-                    if getattr(m, 'on_change', None) is not None:
-                        m.on_change(value)
-                    else:
-                        Logger.warn("handle_settings_change: no on_change function for setting: " + str(m))
-    if not found:
-        Logger.error("handle_settings_change: BUG: no setting found for section: " + section + ", key: " + key)

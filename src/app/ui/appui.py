@@ -6,13 +6,14 @@ from typing import Optional
 import numpy as np
 from PIL import Image
 from kivy import Logger
+from kivy.app import App
 from kivy.clock import Clock, ClockEvent, mainthread
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.uix.settings import Settings
 from kivy.uix.widget import Widget
 
-from app.settings.register import register_settings_section_meta
+from app.settings.register import register_settings_section_meta, settings_on_change
 from app.settings.settings import SettingMetaNumeric
 from app.ui.controls import Controls
 from app.util.monitor import setup_monitor
@@ -36,11 +37,14 @@ class AppUI(Controls):
     _ui_drone: Optional[Drone] = None
     _ui_status_last_battery: float = -1.0
     _ui_resizing: Optional[ClockEvent] = None
-    _ui_resizing_ignore: bool = False
 
     def __init__(self):
         super().__init__()
+        # Dynamically resize the UI when the window is resized or the scale is changed
         Window.bind(on_resize=lambda _dt, width, height: self.ui_on_resize(width, height))
+        Clock.schedule_once(lambda *args: settings_on_change(
+            'ui', 'scale', lambda _value: self.ui_on_resize(Window.width, Window.height), False), 0)
+        # TODO: Also listen to opacity changes (how to update the UI?)
 
     @abstractmethod
     def ui_get_or_create_settings(self) -> (Settings, bool):
@@ -48,16 +52,14 @@ class AppUI(Controls):
         raise NotImplementedError()
 
     @property
-    @abstractmethod
     def ui_scale(self) -> float:
         """The scale of the UI elements."""
-        return 1.0
+        return float(App.get_running_app().config.get('ui', 'scale'))
 
     @property
-    @abstractmethod
     def ui_opacity(self) -> float:
         """The opacity of the UI elements."""
-        return 1.0
+        return float(App.get_running_app().config.get('ui', 'opacity'))
 
     def ui_build(self) -> Widget:
         """Builds the UI from the source KV files. The returned widget is expected to be the root of the app.
@@ -140,22 +142,19 @@ class AppUI(Controls):
     @mainthread
     def _ui_force_refresh_layouts(self, n: int):
         """Forces the UI to re-layout its elements."""
-        self._ui_resizing_ignore = True
+        tmp_widget = Widget(size_hint=(None, None), size=(1, 1))  # Add a temporary widget to force a layout refresh
 
         def reset_window_size(_ignored):
-            Window.size = Window.size[0] - 1, Window.size[1]
-            self._ui_resizing_ignore = False
-            if n > 1:
+            self._ui_el_root.remove_widget(tmp_widget)
+            if n > 1:  # Recursively refresh layouts until we are done
                 Clock.schedule_once(lambda _ignored: self._ui_force_refresh_layouts(n - 1), 0.1)
 
-        Window.size = Window.size[0] + 1, Window.size[1]
+        self._ui_el_root.add_widget(tmp_widget)
         Clock.schedule_once(reset_window_size, 0)  # Schedule after the current frame
 
     def ui_on_resize(self, width: int, height: int):
         # After a window resize (including at startup), we need to re-layout the UI elements (to solve internal refs)
         # We use a scheduled event to avoid doing it too often
-        if self._ui_resizing_ignore:
-            return  # Ignore the resize event if we are forcing it
         if self._ui_resizing is not None:
             self._ui_resizing.cancel()
         self._ui_resizing = Clock.schedule_once(lambda _ignored: self._ui_on_resize(width, height), 0.25)

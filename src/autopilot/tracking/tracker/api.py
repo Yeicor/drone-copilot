@@ -13,6 +13,25 @@ class Tracker(abc.ABC):
 
     _loaded: bool = False
 
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        """Returns the name of the tracker."""
+        return 'Unnamed'
+
+    @property
+    @abc.abstractmethod
+    def detector(self) -> Optional['Detector']:
+        """Returns the detector used by the tracker, or None if detector is not used by the tracker.
+        It will always return a value if the tracker supports detection."""
+        return None
+
+    @detector.setter
+    @abc.abstractmethod
+    def detector(self, detector: 'Detector'):
+        """Sets the detector to be used by the tracker, if any."""
+        pass
+
     def load(self, callback: Callable[[float], None] = None):
         """Synchronously starts loading the model (if required).
 
