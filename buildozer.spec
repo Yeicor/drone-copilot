@@ -106,8 +106,8 @@ fullscreen = 0
 #icon.adaptive_background.filename = %(source.dir)s/data/icon_bg.png
 
 # (list) Permissions
-# internet to communicate with the drone, storage to save pictures
-android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE
+# internet to communicate with the drones
+android.permissions = INTERNET
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
