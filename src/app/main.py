@@ -7,7 +7,7 @@ from kivy.app import App as KivyApp
 from kivy.config import ConfigParser
 from kivy.uix.settings import SettingsWithSpinner, Settings
 
-from app.settings.registry import get_settings_meta, get_settings_defaults
+from app.settings.manager import SettingsManager
 from app.ui.appui import AppUI
 from app.util.photo import save_image_to_pictures
 from app.video.tracker import Tracker
@@ -15,12 +15,12 @@ from autopilot.tracking.detector.api import Detection
 from drone.api.camera import Camera
 from drone.api.drone import Drone
 from drone.api.status import Status
-from drone.registry import drone_connect_auto
+from drone.registry import DroneRegistry
 from util.androidhacks import setup as androidhacks_setup
 
 
-class App(KivyApp, AppUI):
-    """Contains the core logic of the Drone Copilot application, leaving UI and controls to superclasses."""
+class App(KivyApp, AppUI, SettingsManager):
+    """Contains the core logic of the Drone Copilot application, leaving UI, controls and settings to superclasses."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -43,19 +43,37 @@ class App(KivyApp, AppUI):
         self._drone_camera: Optional[Camera] = None
         self._my_app_settings: Optional[SettingsWithSpinner] = None  # Cached settings
 
-    # ==================== "boilerplate" ====================
-
     @property
     def name(self):
         return 'drone_copilot'  # No spaces, no special characters
 
-    def build_settings(self, settings):  # Build the settings UI panel
-        for title, data in get_settings_meta().items():
-            settings.add_json_panel(title, self.config, data=data)
+    # ==================== SettingsManager ====================
 
     def build_config(self, config: ConfigParser):
-        for k, v in get_settings_defaults().items():
-            config.setdefaults(k, v)
+        # Bind a callback to instantly register new settings
+        self.callbacks += [self.on_settings_meta_changed]
+        # Set defaults for setting registered during startup (e.g. AppUI)
+        for section, defaults in self._sections.items():
+            self.on_settings_meta_changed(section, True)
+
+    def on_settings_meta_changed(self, section: str, exists: bool):  # Dynamic settings!
+        # Let the SettingsManager handle it
+        self.on_meta_changed(self, section, exists)
+        # Update the settings UI
+        if self._my_app_settings:
+            menu = self.cur_settings_menu()
+            self._my_app_settings = None  # Need to recreate the settings UI (lazily)
+            if menu is not None:
+                Logger.info(f'SettingsManager: Forcing refresh of settings menu {menu}')
+                self.action_toggle_settings(force=True, menu=menu)
+
+    def build_settings(self, settings):  # Build the settings UI panel
+        for section, data in self.build_sections_json().items():
+            if section in settings.interface.content.panels:  # HACK: Remove previously generated panels
+                del settings.interface.content.panels[section]
+            settings.add_json_panel(section, self.config, data=data)
+
+    # ==================== AppUI ====================
 
     def load_kv(self, filename=None):
         # Use AppUI to load the root widget, instead of KivyApp
@@ -63,13 +81,11 @@ class App(KivyApp, AppUI):
         self.root = self.ui_build()
         return True
 
-    # ==================== UI method implementations ====================
-
-    def ui_get_or_create_settings(self) -> (Settings, bool):
+    def ui_get_or_create_settings(self, can_create: bool = True) -> (Settings, bool):
         created = False
-        from app.settings.register import settings_metadata_changed
-        if not self._my_app_settings or settings_metadata_changed():
-            self.build_config(self.config)  # Add defaults once again after metadata change
+        if self._my_app_settings is None and can_create:
+            if self._app_settings is not None:  # HACK: rebuilding after changes
+                self._app_settings = None
             self._my_app_settings = self.create_settings()
             created = True
         return self._my_app_settings, created
@@ -87,7 +103,10 @@ class App(KivyApp, AppUI):
 
         # Start connecting to the drone
         # TODO: More interactive UI for initial connection
-        drone_connect_auto(self.config, lambda drone: AppUI.on_drone_connect_result(self, drone) or (
+        # TODO: Recover from drone connection errors without restarting app
+        drones = DroneRegistry()
+        drones.setup_settings()
+        drones.drone_connect_auto(self.config, lambda drone: AppUI.on_drone_connect_result(self, drone) or (
             self.dispatch('on_drone_connected', drone) if drone else None))
 
     def on_drone_connected(self, drone: Drone):

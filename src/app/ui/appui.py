@@ -13,7 +13,7 @@ from kivy.lang import Builder
 from kivy.uix.settings import Settings
 from kivy.uix.widget import Widget
 
-from app.settings.register import register_settings_section_meta, settings_on_change
+from app.settings.manager import SettingsManager
 from app.settings.settings import SettingMetaNumeric
 from app.ui.controls import Controls
 from app.util.monitor import setup_monitor
@@ -21,11 +21,6 @@ from app.util.photo import save_image_to_pictures
 from drone.api.drone import Drone
 from drone.api.status import Status
 from util.filesystem import source
-
-register_settings_section_meta('UI', 'User Interface', 1000, [
-    SettingMetaNumeric.create('Scale', 'The scale multiplier of the UI elements', 1.0),
-    SettingMetaNumeric.create('Opacity', 'The opacity multiplier of the UI elements', 1.0)
-], 'ui')
 
 
 class AppUI(Controls):
@@ -42,8 +37,16 @@ class AppUI(Controls):
         super().__init__()
         # Dynamically resize the UI when the window is resized or the scale is changed
         Window.bind(on_resize=lambda _dt, width, height: self.ui_on_resize(width, height))
-        Clock.schedule_once(lambda *args: settings_on_change(
-            'ui', 'scale', lambda _value: self.ui_on_resize(Window.width, Window.height), False), 0)
+        # Settings
+        Logger.info('AppUI: UI settings...')
+        settings = SettingsManager.instance()
+        self.section_name = 'UI'
+        settings[self.section_name] = [
+            SettingMetaNumeric.create('Scale', 'The scale multiplier of the UI elements', 1.0),
+            SettingMetaNumeric.create('Opacity', 'The opacity multiplier of the UI elements', 1.0)
+        ]
+        settings[self.section_name][0].bind(
+            self.section_name, lambda _val: self.ui_on_resize(Window.width, Window.height), False)
         # TODO: Also listen to opacity changes (how to update the UI?)
 
     @abstractmethod
@@ -54,12 +57,12 @@ class AppUI(Controls):
     @property
     def ui_scale(self) -> float:
         """The scale of the UI elements."""
-        return float(App.get_running_app().config.get('ui', 'scale'))
+        return float(App.get_running_app().config.get(self.section_name, 'scale'))
 
     @property
     def ui_opacity(self) -> float:
         """The opacity of the UI elements."""
-        return float(App.get_running_app().config.get('ui', 'opacity'))
+        return float(App.get_running_app().config.get(self.section_name, 'opacity'))
 
     def ui_build(self) -> Widget:
         """Builds the UI from the source KV files. The returned widget is expected to be the root of the app.
@@ -230,6 +233,11 @@ class AppUI(Controls):
     def action_toggle_tracking_result(self, now_enabled: bool):
         self.ui_el('tracking_button').background_color = (0, 1, 0, 1) if now_enabled else (1, 1, 1, 1)
 
+    def cur_settings_menu(self) -> Optional[str]:
+        settings, just_created = self.ui_get_or_create_settings(can_create=False)
+        return settings.interface.menu.spinner.text if settings else None
+
+    @mainthread
     def action_toggle_settings(self, force: Optional[bool] = None, menu: Optional[str] = None):
         Logger.debug('AppUI: action_toggle_settings()')
         settings, just_created = self.ui_get_or_create_settings()
@@ -238,14 +246,13 @@ class AppUI(Controls):
             settings.interface.bind(on_close=lambda *_args: self.action_toggle_settings(False))
         if menu:  # HACK: Access internal properties to set the settings panel menu
             settings.interface.menu.spinner.text = menu
-        if self.ui_el('right_panel').size_hint_x == 0:  # Open the settings
-            if force is not False:
-                self.ui_el('right_panel').size_hint_x = 0.5  # TODO: Animation?
-                self.ui_el('right_panel').add_widget(settings)
-        else:  # Close the settings
-            if force is not True:
-                self.ui_el('right_panel').remove_widget(settings)
-                self.ui_el('right_panel').size_hint_x = 0
+        if self.ui_el('right_panel').size_hint_x == 0 or force is True:  # Open the settings
+            self.ui_el('right_panel').size_hint_x = 0.5  # TODO: Animation?
+            self.ui_el('right_panel').clear_widgets()
+            self.ui_el('right_panel').add_widget(settings)
+        elif self.ui_el('right_panel').size_hint_x > 0 or force is False:  # Close the settings
+            self.ui_el('right_panel').remove_widget(settings)
+            self.ui_el('right_panel').size_hint_x = 0
 
     def action_screenshot_app(self):
         Logger.debug('AppUI: action_screenshot_app()')

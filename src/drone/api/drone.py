@@ -22,12 +22,10 @@ class Drone(ABC):
     """
 
     @staticmethod
-    def connect(url: str, timeout_secs: float, extra: any, callback: Callable[[Optional[Type[Drone]]], None]):
+    def connect(timeout_secs: float, callback: Callable[[Optional[Type[Drone]]], None]):
         """Connects to the drone, returning "immediately". Remember to delete this object for disconnection!
 
-        :param url: the URL of the drone (if applicable).
         :param timeout_secs: the maximum amount of time to wait for the drone to connect.
-        :param extra: any drone-specific data required for setup (check docs).
         :param callback: a callback function that is called when the drone is connected (or the connection fails).
         """
         pass

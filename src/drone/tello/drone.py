@@ -4,7 +4,7 @@ import math
 import threading
 import weakref
 from time import sleep
-from typing import Callable, Optional, List
+from typing import Callable, Optional, List, Type
 
 from kivy.clock import Clock
 from tellopy import Tello
@@ -24,7 +24,7 @@ class TelloDrone(Drone):
     """
 
     @staticmethod
-    def connect(url: str, timeout_secs: float, extra: any, callback: Callable[[Optional[TelloDrone]], None]):
+    def connect(timeout_secs: float, callback: Callable[[any], None]):
         tello = Tello()
         callback_done = []
 

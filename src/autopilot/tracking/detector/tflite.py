@@ -22,13 +22,16 @@ import abc
 import multiprocessing
 import typing
 import zipfile
-from typing import List, NamedTuple, Optional
+from dataclasses import dataclass
+from typing import List, Optional
 
 import cv2
 import numpy as np
 from kivy import Logger
 from kivy.utils import platform
 
+from app.settings.manager import SettingsManager
+from app.settings.settings import SettingMetaNumeric
 from autopilot.tracking.detector.api import Detector, Detection, Category, Rect
 from util.filesystem import download
 
@@ -53,7 +56,8 @@ def load_tf_lite():
 # pylint: enable=g-import-not-at-top
 
 
-class TFLiteDetectorOptions(NamedTuple):
+@dataclass
+class TFLiteDetectorOptions:
     """A config to initialize an object detector."""
 
     enable_edgetpu: bool = False
@@ -119,8 +123,36 @@ class TFLiteDetector(Detector):
         self._interpreter: Optional['Interpreter'] = None
         self.input_size = (0, 0)
         self._dtype: Optional[any] = None
+        self._first_selection: bool = True
+
+    def selected(self, selected: bool):
+        # Settings
+        settings = SettingsManager.instance()
+        section_name = f'Detector-{self.name}'
+        if selected:
+            settings[section_name] = [SettingMetaNumeric.create(
+                'non_max_suppression_threshold', 'Non-max suppression threshold (-1 to disable)',
+                self._options.non_max_suppression_threshold)]
+
+            def update_nms(value: str):
+                f = float(value)
+                if f < 0:
+                    f = None
+                self._options.non_max_suppression_threshold = f
+
+            if self._first_selection:
+                self._first_selection = False
+                settings[section_name][0].bind(section_name, on_change=update_nms)
+        else:
+            del settings[section_name]
+
+    def __del__(self):
+        Logger.info(f"TFLiteDetector: Destroying {self.name} detector")
+        settings = SettingsManager.instance()
+        section_name = f'Detector-{self.name}'
 
     def load(self, callback: typing.Callable[[float], None] = None):
+        # Load the model
         Logger.info(f'TFLiteDetector: Loading model from {self._model_path}')
         callback = callback or (lambda x: None)
         # noinspection PyPep8Naming

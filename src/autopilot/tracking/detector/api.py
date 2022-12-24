@@ -62,6 +62,10 @@ class Detector(abc.ABC):
         """Returns the display name of the detector."""
         return "Unnamed"
 
+    def selected(self, selected: bool):
+        """Called when the detector is selected by the user (to register custom settings)."""
+        pass
+
     def load(self, callback: Callable[[float], None] = None):
         """Synchronously starts loading the model (if required).
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import threading
 from time import sleep
-from typing import Callable, Optional, List
+from typing import Callable, List
 
 import numpy as np
 from kivy import Logger
@@ -21,7 +21,7 @@ class TestDrone(Drone):
     """
 
     @staticmethod
-    def connect(url: str, timeout_secs: float, extra: any, callback: Callable[[Optional[TestDrone]], None]):
+    def connect(timeout_secs: float, callback: Callable[[any], None]):
         # Start a new thread to "connect" to the drone (as it may take a little while for other drones)
         threading.Thread(target=lambda: sleep(0.1) or callback(TestDrone())).start()
 

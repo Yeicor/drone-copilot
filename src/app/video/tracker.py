@@ -1,4 +1,3 @@
-import time
 from threading import Thread, Event, Lock
 from typing import List, Optional
 
@@ -12,23 +11,13 @@ from kivy.metrics import pt
 from kivy.properties import ObjectProperty
 from kivy.uix.widget import Widget
 
-import autopilot.tracking.detector.registry as detector_registry
-from app.settings.register import register_settings_section_meta, settings_on_change, unregister_settings_section_meta
-from app.settings.settings import SettingMetaOptions
+from app.settings.manager import SettingsManager
+from app.settings.settings import SettingMetaOptions, SettingMetaNumeric
 from app.video.video import MyVideo
 from autopilot.tracking.detector.api import Detection
+from autopilot.tracking.detector.registry import build_registry as detector_registry
 from autopilot.tracking.tracker.api import Tracker as TrackerAPI
-from autopilot.tracking.tracker.detectorbased import DetectorBasedTrackerAny
-
-# TODO: A nice detector and tracker settings page (+ dynamic settings?)
-register_settings_section_meta('Tracker', 'Detector', 1000, [
-    SettingMetaOptions.create('Detector', 'The detector implementation',
-                              [det.name for det in detector_registry.registry],
-                              detector_registry.registry[0].name),
-], 'tracker')
-register_settings_section_meta('Tracker', 'Tracker', 2000, [
-    SettingMetaOptions.create('Tracker', 'The tracker implementation', ['TODO'], 'TODO'),
-], 'tracker')
+from autopilot.tracking.tracker.registry import build_registry as tracker_registry
 
 
 class Tracker(Widget):
@@ -40,10 +29,11 @@ class Tracker(Widget):
 
     video: MyVideo = ObjectProperty(None, allownone=True)
     """The background video element, used to get the video position and dimensions to apply the overlay."""
+    _section_name = 'Tracker'
+    """The section name for settings"""
 
     def __init__(self, tracker: TrackerAPI = None, **kwargs):  # , depth_estimator: DepthEstimator
         super().__init__(**kwargs)
-        self._tracker = tracker
         # self._depth_estimator = depth_estimator
         self._thread: Optional[Thread] = None
         self._thread_lock = Lock()
@@ -53,17 +43,60 @@ class Tracker(Widget):
         self._load_progress: Optional[float] = None
         # Events
         self.register_event_type('on_track')
-        settings_on_change('tracker', 'detector', self._on_change_tracker_detector_settings)
+        # Settings
+        self.detector_registry = detector_registry()
+        self.tracker_registry = tracker_registry()
+        self._tracker = tracker or self.tracker_registry[0]
+        if self._tracker.detector:
+            self._tracker.detector.selected(True)
+        self.rebuild_settings(True)
 
-    def _on_change_tracker_detector_settings(self, tracker: str):
+    def rebuild_settings(self, first_time: bool = False):
+        settings = SettingsManager.instance()
+
+        # Tracker settings
+        tracker_names = [tr.name for tr in self.tracker_registry]
+        tracker_selector = SettingMetaOptions.create(
+            'Tracker', 'The tracker implementation', tracker_names, tracker_names[0])
+        if first_time:
+            tracker_selector.bind(self._section_name, self._on_change_tracker_tracker, True)
+        current_settings = [tracker_selector]
+
+        # Detector settings (if any)
+        if self.tracker is not None and self.tracker.detector is not None:
+            detector_names = [det.name for det in self.detector_registry]
+            detector_selector = SettingMetaOptions.create(
+                'Detector', 'The object detector model to use', detector_names, detector_names[0])
+            current_settings += [detector_selector]
+            if first_time:
+                detector_selector.bind(self._section_name, self._on_change_tracker_detector, True)
+
+        # Common detector/tracker settings (read from the tracker thread on each frame)
+        current_settings += [
+            SettingMetaNumeric.create('Confidence', 'The minimum confidence to detect/track', 0.5),
+            SettingMetaNumeric.create('Max results', 'The maximum number of objects to detect', -1),
+        ]
+
+        # Update the settings and force refresh their UI
+        settings[self._section_name] = current_settings
+
+    def _on_change_tracker_tracker(self, tracker: str):
+        Logger.info('Tracker: on_change_tracker_tracker: %s' % tracker)
+        previous_detector = self.tracker.detector
+        self.tracker = [tr for tr in self.tracker_registry if tr.name == tracker][0]
+        if previous_detector is not None and self.tracker.detector is None:
+            previous_detector.selected(False)
+        elif previous_detector is None and self.tracker.detector is not None:
+            self.tracker.detector.selected(True)
+        self.rebuild_settings()
+
+    def _on_change_tracker_detector(self, tracker: str):
         Logger.info('Tracker: on_change_tracker_detector_settings: %s' % tracker)
-        new_detector = [det for det in detector_registry.registry if det.name == tracker][0]
-        self.tracker = DetectorBasedTrackerAny(new_detector)  # TODO: Also swap tracker at runtime
-        # Logger.warning('Tracker: on_change_tracker_detector_settings: No detector found on tracker')
-        # unregister_settings_section_meta('Tracker2', 'Tracker2')
-        # register_settings_section_meta('Tracker2', 'Tracker2', 2000, [
-        #     SettingMetaOptions.create('DynamicSetting', f'DynamicSetting {time.time()}!', ['TODO'], 'TODO'),
-        # ])
+        new_detector = [det for det in self.detector_registry if det.name == tracker][0]
+        if self.tracker.detector:  # If the current tracker supports a detector
+            self.tracker.detector.selected(False)
+            self.tracker.detector = new_detector
+            self.tracker.detector.selected(True)
 
     @property
     def tracker(self):
@@ -222,7 +255,9 @@ class Tracker(Widget):
                 img = self._img.copy()  # Avoid blocking or reading new data while processing
 
             # Run the tracking algorithm
-            detection, all_detections = self._tracker.track(img)
+            confidence = float(App.get_running_app().config.get(self._section_name, 'confidence'))
+            max_results = int(App.get_running_app().config.get(self._section_name, 'max_results'))
+            detection, all_detections = self._tracker.track(img, confidence, max_results)
 
             # Run any bound event listeners, including the default one which updates the UI
             # NOTE: This runs them on the background thread, blocking further processing until they are done.

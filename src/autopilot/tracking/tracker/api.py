@@ -52,12 +52,14 @@ class Tracker(abc.ABC):
         self._loaded = False
 
     @abc.abstractmethod
-    def track(self, img: np.ndarray, min_confidence: float = 0.5) -> (Optional[Detection], List[Detection]):
+    def track(self, img: np.ndarray, min_confidence: float = 0.5, max_results: int = -1) -> (
+            Optional[Detection], List[Detection]):
         """
         :param img: the image where the detector should run in the format [height, width, channels(3)].
             Note that the implementation will resize and crop the image if required.
             It should also adapt the data type, assuming floats to be in the range [0, 1].
         :param min_confidence: the minimum confidence required to return a detection.
+        :param max_results: the maximum number of results to return, or -1 for no limit.
         :return: the tracked object or None if no object was detected. It also returns the list of all raw detections.
         """
         pass

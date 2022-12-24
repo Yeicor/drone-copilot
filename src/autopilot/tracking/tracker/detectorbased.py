@@ -34,8 +34,9 @@ class DetectorBasedTracker(Tracker, ABC):
         self.detector.unload()
         super().unload()
 
-    def track(self, img: np.ndarray, min_confidence: float = 0.5) -> (Optional[Detection], List[Detection]):
-        all_detections = self.detector.detect(img, min_confidence)
+    def track(self, img: np.ndarray, min_confidence: float = 0.5, max_results: int = -1) -> (
+            Optional[Detection], List[Detection]):
+        all_detections = self.detector.detect(img, min_confidence, max_results)
         return self.track_strategy(all_detections), all_detections
 
     @abstractmethod
