@@ -67,7 +67,9 @@ class App(KivyApp, AppUI):
 
     def ui_get_or_create_settings(self) -> (Settings, bool):
         created = False
-        if not self._my_app_settings:
+        from app.settings.register import settings_metadata_changed
+        if not self._my_app_settings or settings_metadata_changed():
+            self.build_config(self.config)  # Add defaults once again after metadata change
             self._my_app_settings = self.create_settings()
             created = True
         return self._my_app_settings, created

@@ -55,17 +55,19 @@ class DetectorBasedTrackerAny(DetectorBasedTracker):
     Different filters and weights can be applied to choose the best detection on next frames.
     """
 
-    def __init__(self, detector: Detector, category_filter: Optional[int] = None, confidence_score_weight: float = 1,
-                 dist_iou_score_weight: float = 2, min_score: float = -sys.float_info.max):
+    def __init__(self, detector: Detector, category_filter: Optional[int] = None, same_category_weight: float = 1,
+                 confidence_score_weight: float = 1, dist_iou_score_weight: float = 2, min_score: float = 1):
         """
         :param detector: the detector to use.
         :param category_filter: the category to track, or None to track any class.
+        :param same_category_weight: the score to add if the tracked and detected object are of same category.
         :param confidence_score_weight: the weight of the confidence in the score of the detection.
         :param dist_iou_score_weight: the weight of the "distance" [0, 1] to a previous detection in the score.
         :param min_score: the minimum score to consider a detection valid.
         """
         super().__init__(detector)
         self.category_filter = category_filter
+        self.same_category_weight = same_category_weight
         self.confidence_weight = confidence_score_weight
         self.distance_weight = dist_iou_score_weight
         self.min_score = min_score
@@ -93,6 +95,10 @@ class DetectorBasedTrackerAny(DetectorBasedTracker):
         # Compute score
         score = detection.confidence * self.confidence_weight
         if tracked is not None:
+            # Category
+            if tracked.category.id == detection.category.id:
+                score += self.same_category_weight
+            # Bounding box
             bb1 = tracked.bounding_box
             bb2 = detection.bounding_box
             iou = intersection_over_union(

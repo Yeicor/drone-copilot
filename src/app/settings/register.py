@@ -5,6 +5,7 @@ from kivy.app import App
 from app.settings.settings import SettingMeta, SettingMetaTitle
 
 _settings_metadata: Dict[str, List[Tuple[str, str, int, List[SettingMeta]]]] = {}
+_settings_metadata_changed: List[bool] = [False]
 
 
 def register_settings_section_meta(title: str, section: str, priority: int, meta: List[SettingMeta], section_id=None):
@@ -25,6 +26,22 @@ def register_settings_section_meta(title: str, section: str, priority: int, meta
     insert_at = binary_search([m[2] for m in _settings_metadata[title]], 0, len(_settings_metadata[title]), priority)
     meta = [SettingMetaTitle.create(section)] + meta  # Prepend the section title.
     _settings_metadata[title].insert(insert_at, (section, section_id, priority, meta))
+    _settings_metadata_changed[0] = True
+
+
+def unregister_settings_section_meta(title: str, section: str):
+    """
+    Unregisters a settings section.
+    :param title: the title of the settings section.
+    :param section: the section to unregister.
+    """
+    if title in _settings_metadata:
+        _settings_metadata[title] = [m for m in _settings_metadata[title] if m[1] != section]
+        _settings_metadata_changed[0] = True
+
+
+def settings_metadata_changed():
+    return _settings_metadata_changed[0]
 
 
 def binary_search(s: List[any], p: int, q: int, find: any) -> int:

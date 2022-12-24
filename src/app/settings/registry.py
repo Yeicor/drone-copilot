@@ -25,6 +25,8 @@ def get_settings_meta() -> {str: str}:
                 del section["default"]
     # Serialize the dictionary of lists to a JSON string.
     meta_dict = {title: json.dumps(sublist) for title, sublist in dict_of_lists.items()}
+    from app.settings.register import _settings_metadata_changed
+    _settings_metadata_changed[0] = False
     return meta_dict
 
 

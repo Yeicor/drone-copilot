@@ -1,3 +1,4 @@
+import time
 from threading import Thread, Event, Lock
 from typing import List, Optional
 
@@ -12,7 +13,7 @@ from kivy.properties import ObjectProperty
 from kivy.uix.widget import Widget
 
 import autopilot.tracking.detector.registry as detector_registry
-from app.settings.register import register_settings_section_meta, settings_on_change
+from app.settings.register import register_settings_section_meta, settings_on_change, unregister_settings_section_meta
 from app.settings.settings import SettingMetaOptions
 from app.video.video import MyVideo
 from autopilot.tracking.detector.api import Detection
@@ -59,6 +60,10 @@ class Tracker(Widget):
         new_detector = [det for det in detector_registry.registry if det.name == tracker][0]
         self.tracker = DetectorBasedTrackerAny(new_detector)  # TODO: Also swap tracker at runtime
         # Logger.warning('Tracker: on_change_tracker_detector_settings: No detector found on tracker')
+        # unregister_settings_section_meta('Tracker2', 'Tracker2')
+        # register_settings_section_meta('Tracker2', 'Tracker2', 2000, [
+        #     SettingMetaOptions.create('DynamicSetting', f'DynamicSetting {time.time()}!', ['TODO'], 'TODO'),
+        # ])
 
     @property
     def tracker(self):
