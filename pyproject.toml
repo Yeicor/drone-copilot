@@ -40,7 +40,7 @@ camera4kivy = "^0.1.0" # Webcam support
 [tool.poetry.group.build-mobile] # poetry install --with build-mobile --without main
 optional = true
 [tool.poetry.group.build-mobile.dependencies]
-Cython = "^0.29.32"
+Cython = "^0.29.33"
 buildozer = "^1.4.0"
 
 [tool.poetry.group.build-desktop] # poetry install --with build-desktop
