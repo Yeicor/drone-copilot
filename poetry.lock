@@ -42,14 +42,14 @@ wheel = ">=0.23.0,<1.0"
 
 [[package]]
 name = "buildozer"
-version = "1.4.0"
+version = "1.5.0"
 description = "Generic Python packager for Android / iOS and Desktop"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "buildozer-1.4.0-py3-none-any.whl", hash = "sha256:040618d8625b2cb742938659045f98f27291271a68c699133faf0e715689ab20"},
-    {file = "buildozer-1.4.0.tar.gz", hash = "sha256:640a361b53d2899cd11051308c79501c65733232c85b37c3d266999959a83b1b"},
+    {file = "buildozer-1.5.0-py3-none-any.whl", hash = "sha256:987cc4363c4834893bbf1c32547b8afd953a16b92d788a654ca5f89ba197d9ea"},
+    {file = "buildozer-1.5.0.tar.gz", hash = "sha256:ec685a53f88789607a43e629f9e25992c9be8824518b00d77ce3092ff7deca75"},
 ]
 
 [package.dependencies]
@@ -1795,4 +1795,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "3f5e3b76267244f8037a52b169830ea7c85be1cab8f6707857b5e8054f93eb09"
+content-hash = "20d47449719e878436364cfba105f66b083baff98b4789a446b1106b0a4caae8"
