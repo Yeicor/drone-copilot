@@ -71,18 +71,18 @@ files = [
 
 [[package]]
 name = "camera4kivy"
-version = "0.1.0"
+version = "0.2.0"
 description = "Yet Another Camera for Kivy"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 files = [
-    {file = "camera4kivy-0.1.0-py3-none-any.whl", hash = "sha256:7cfbaaf90876e4584eed49d902090c1c3e6362c249ba992f9b8a336d3d3ee440"},
-    {file = "camera4kivy-0.1.0.tar.gz", hash = "sha256:a26c1252c10b5815b3e7ec4d76087d58e7a24438be052e1fec46f6d2d820625b"},
+    {file = "camera4kivy-0.2.0-py3-none-any.whl", hash = "sha256:d2163f6477dd404341860996c9ccc413fef6a9daac0bda550d285333c0ff6977"},
+    {file = "camera4kivy-0.2.0.tar.gz", hash = "sha256:996173989d013021fa6482573f740de87828d059e65de511656e76f7d3b75edd"},
 ]
 
 [package.dependencies]
-gestures4kivy = ">=0.1.0"
+gestures4kivy = ">=0.1.1"
 
 [[package]]
 name = "certifi"
@@ -187,36 +187,31 @@ files = [
 
 [[package]]
 name = "ffpyplayer"
-version = "4.4.0"
+version = "4.3.5"
 description = "A cython implementation of an ffmpeg based player."
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "ffpyplayer-4.4.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:6dbd2ea77f2f38b9fbaa3015aa98284d1ff11867e0660731bf721b08e0d6f5ac"},
-    {file = "ffpyplayer-4.4.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:e6ce70fe589c993ca7f2e4e3461cc9bb6274cba598233aa8efbd0c259301f307"},
-    {file = "ffpyplayer-4.4.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:befff7dbb1386af783e8bb06bf291fd660ff169ca5e0d960681e7139f7a584ec"},
-    {file = "ffpyplayer-4.4.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9a886c52c16c50cc8074b8938d7f8b45a213d6f60d95ba1a10e43dd1da9dfdeb"},
-    {file = "ffpyplayer-4.4.0-cp310-cp310-win_amd64.whl", hash = "sha256:2d350f482831d1e6aee9ae553bd52e7ee8783d40541a58628a33b1491512d720"},
-    {file = "ffpyplayer-4.4.0-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:c0b7a93555bae413326a8999d1084a6ccb4a06eac5bf59ccb26a1019324d0821"},
-    {file = "ffpyplayer-4.4.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:0203dd4ef0b885ece45aaedc7bdf7b1c4c7c3d8f33907266262b6d3cfb5c8edf"},
-    {file = "ffpyplayer-4.4.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:34598bbb11d30e08714d4dac9cdacd2545556811e171311978f59b52bcbeb7f9"},
-    {file = "ffpyplayer-4.4.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5881c759179469a0ce3b5cf5f1178b3c925519f1b211e9a84c870a105fb37fb8"},
-    {file = "ffpyplayer-4.4.0-cp311-cp311-win_amd64.whl", hash = "sha256:424440ad325df1981e50017ac39d819cc51155045664e40eadefca1f0f950561"},
-    {file = "ffpyplayer-4.4.0-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:bc769fc9153ebdd6aa0752212f99261a305bcd567851f909b755bec0fdb7023f"},
-    {file = "ffpyplayer-4.4.0-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a43b8db1377d8da80859e230dcfc10ede5309692fc1c8a02b4d3db2c399d2dc0"},
-    {file = "ffpyplayer-4.4.0-cp37-cp37m-win_amd64.whl", hash = "sha256:8622bd7c1530ce2432dd64b9a215ff9a8e2262c79b95ab266178d69aefc87cdd"},
-    {file = "ffpyplayer-4.4.0-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:9991084942496694905fa7ebfef4b2bcec9825715bca0f8649dfb580d23a19c8"},
-    {file = "ffpyplayer-4.4.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:07b05e3fe070dc9174f7d1469311c1bda14050be80c97c3b0ebf63535dda5a78"},
-    {file = "ffpyplayer-4.4.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:7e9c9b8cda6f33ff856312bbf64e8102b9b4c3088401ffc23e50e94fec3d11b8"},
-    {file = "ffpyplayer-4.4.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a8ef38105d912b8f532dacb9e72673a8dd29c8f045975d8c2b8eccc456844b64"},
-    {file = "ffpyplayer-4.4.0-cp38-cp38-win_amd64.whl", hash = "sha256:5e8b9a78942623ab52707f0b7dbaf72ab3120fb482bbe3c6346ba006826077b1"},
-    {file = "ffpyplayer-4.4.0-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:00eaa961f38f463b7ba48a6ee0a2bd9af8ec26ef1e2164b4a6bf09e02b369313"},
-    {file = "ffpyplayer-4.4.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:ab900fba55e9f6c1bb83dfd4ac584bfae8e8fef8ef0856af43ac7e0433104d2d"},
-    {file = "ffpyplayer-4.4.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:851d71ca37074ee467bae6ce2a895ba6fa96c841b097b64fe070be60e5682b26"},
-    {file = "ffpyplayer-4.4.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a7ebc55c3583af0990cf83b7fc3aac6c93fa2c2d99d028aeeecfb533678e05b4"},
-    {file = "ffpyplayer-4.4.0-cp39-cp39-win_amd64.whl", hash = "sha256:f9b4909d472f895b9af0be280d84ceb00ff3f20d589dba4d63a5553d94f70e84"},
-    {file = "ffpyplayer-4.4.0.tar.gz", hash = "sha256:524c3d5d6d35819f43981da87fc635b8385e66bcf1f7de3ae768b9db618b7853"},
+    {file = "ffpyplayer-4.3.5-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:5227ade460772c61a6e8772b2f118b28b20e7e2271ef169d86a779e07fe1aab6"},
+    {file = "ffpyplayer-4.3.5-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:e8477eb12fd7a8f4b61237e445d1840750a4c3d9f0732f099a7929f4143371d3"},
+    {file = "ffpyplayer-4.3.5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:f8348e468e20df21f28b0d841d58457de6943ad99048454121fa66fc2fc71672"},
+    {file = "ffpyplayer-4.3.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:db49e4012e87613092a04c79f8b3d0ffed59e935ae75df3b6b54ea4f50fb2cf6"},
+    {file = "ffpyplayer-4.3.5-cp310-cp310-win_amd64.whl", hash = "sha256:a423652a08909b61d9158f07961d6bee5c4cec5759c306ed1c2227cb743fc851"},
+    {file = "ffpyplayer-4.3.5-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:92246322b48697b7f26c86e5fbb0ce97e7dce4bb9eafbd3ba5348c18dfc0b7e3"},
+    {file = "ffpyplayer-4.3.5-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:efa28c0905556cd6d4fdac78c99664c4ce47d20a1b225d70e1a8cfee07897695"},
+    {file = "ffpyplayer-4.3.5-cp37-cp37m-win_amd64.whl", hash = "sha256:034ea7a08b76cc5fcfc6dee52cc3bd26843efd63b13d312c80396a9be0e2620f"},
+    {file = "ffpyplayer-4.3.5-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:599b2aa14e5c57fac8a51a918e010a758ffcd58261abc981153e1f63082e69ca"},
+    {file = "ffpyplayer-4.3.5-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:091fe97a5b82db0596780069ba273b53ece5971a43b8ae71956e671681bad90d"},
+    {file = "ffpyplayer-4.3.5-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:207c00dce7c299e654b696a35bc8304efc52d72f1bd0de11beccbbac6a8a01f1"},
+    {file = "ffpyplayer-4.3.5-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:63c2da0639be85b91f6b0ca2a5f95a5035db231c0b94901000b6e234487f534a"},
+    {file = "ffpyplayer-4.3.5-cp38-cp38-win_amd64.whl", hash = "sha256:a57bb1dd3eee3ae7915b186a71b7448f3adce24d1a486017eed5ab60c7d72821"},
+    {file = "ffpyplayer-4.3.5-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:24639be303e92863a3d986a5c7d114602a33bdab48391aa6a4e09a8b08a54db6"},
+    {file = "ffpyplayer-4.3.5-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:fc35177f14d88d6f6b523e2ac38a5da81c5529f2d3a3de4b2ed285e390da6bbf"},
+    {file = "ffpyplayer-4.3.5-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:57c46d8e932868e2f97591be0f141803beafc524dee4218fd18488e0f1f9b7d4"},
+    {file = "ffpyplayer-4.3.5-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fd1f008c7fb1f7ad4886bdd4f89b301494e8202f4cdb0e47a94b0246f0e0e9d7"},
+    {file = "ffpyplayer-4.3.5-cp39-cp39-win_amd64.whl", hash = "sha256:f6e51bdc63ec251cd46d57282f77d8c5599f5359165b6e8d68d06237a7d1e806"},
+    {file = "ffpyplayer-4.3.5.tar.gz", hash = "sha256:be6b092e31446830fb1073955d0420a6510952d068da70e6163ad74420f0e434"},
 ]
 
 [[package]]
@@ -1800,4 +1795,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "2834afef5822ad8c37269801e8bc42979275701c7df7b03689fcab1a7bb3dfd2"
+content-hash = "e3397404b2db3d005b2167979f533f6ae53140f58730c544e6706ce828479116"
