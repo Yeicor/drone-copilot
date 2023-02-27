@@ -71,18 +71,18 @@ files = [
 
 [[package]]
 name = "camera4kivy"
-version = "0.2.1"
+version = "0.3.0"
 description = "Yet Another Camera for Kivy"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "camera4kivy-0.2.1-py3-none-any.whl", hash = "sha256:4bb444af6ffc11fec9453b8cad5aafb31b717d1f9bb75c8fc148c4c66d38fe8b"},
-    {file = "camera4kivy-0.2.1.tar.gz", hash = "sha256:f668fc305e85c6e14edbc86c02819a1be57482497464ed613586214ff12e1b2c"},
+    {file = "camera4kivy-0.3.0-py3-none-any.whl", hash = "sha256:bba224235f696233f961ce10c125def2de03eb5df45b9705d102cf2b05c7627a"},
+    {file = "camera4kivy-0.3.0.tar.gz", hash = "sha256:af97fd54fc0967ef208cf1e1bf4877e256c6cca22e9d26f63b1bdc6e21ce2a68"},
 ]
 
 [package.dependencies]
-gestures4kivy = ">=0.1.1"
+gestures4kivy = ">=0.1.3"
 
 [[package]]
 name = "certifi"
@@ -272,14 +272,14 @@ files = [
 
 [[package]]
 name = "gestures4kivy"
-version = "0.1.1"
+version = "0.1.3"
 description = "Detect common touch gestures in Kivy apps"
 category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "gestures4kivy-0.1.1-py3-none-any.whl", hash = "sha256:17a78d1dc3f1a0a4d8c26582c318d02f28a95de4447a57a03d8837c7909f20ce"},
-    {file = "gestures4kivy-0.1.1.tar.gz", hash = "sha256:b0ca2886a45f16472f0db0e6e21884331a5993feac52a4f6bd3d6308199a7cb2"},
+    {file = "gestures4kivy-0.1.3-py3-none-any.whl", hash = "sha256:bffc073039fea6cd386a209d0f0f4b7fc09587a09eead0796a1c698be76c2640"},
+    {file = "gestures4kivy-0.1.3.tar.gz", hash = "sha256:9f4b0ff5ae7fca8e7f0b41cf23989ac80c829a4f4b6f31e33d863937d9b8da8b"},
 ]
 
 [[package]]
@@ -1801,4 +1801,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "5413e9623819dc649c116ead4479e34e5dbe4be5516f7ec4bd28659f1136f8db"
+content-hash = "8d329d40d8f657e3c751683b8a6a307164855efd4e85dea7795208f949aa93c3"
