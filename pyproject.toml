@@ -20,7 +20,7 @@ tellopy = { git = "https://github.com/hanyazou/TelloPy", rev = "develop-0.7.0" }
 
 # AI
 # - OpenCV: computer vision algorithms
-opencv-python = "^4.7.0.68"
+opencv-python = "^4.7.0.72"
 # - Tensorflow: machine learning platform (either tflite or tensorflow(-cpu/-gpu)? should be installed)
 tflite-runtime = { platform = 'linux', version = "^2.11.0" }
 tensorflow = [# TODO: Remove python version requirement when it is possible
