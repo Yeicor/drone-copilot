@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 # Core
-python = ">=3.9,<3.12"
+python = ">=3.9,<3.10" # FIXME: tflite-runtime requires python 3.9
 
 # Kivy & Widgets
 Kivy = { version = "^2.1.0", extras = ["base", "full"] }
@@ -16,7 +16,6 @@ kivy3 = { git = "https://github.com/KeyWeeUsr/kivy3", rev = "master" }
 
 # Drone management
 tellopy = { git = "https://github.com/hanyazou/TelloPy", rev = "develop-0.7.0" }
-# TODO: dronekit??
 
 # AI
 # - OpenCV: computer vision algorithms
@@ -24,7 +23,7 @@ opencv-python = "^4.7.0.72"
 # - Tensorflow: machine learning platform (either tflite or tensorflow(-cpu/-gpu)? should be installed)
 tflite-runtime = { platform = 'linux', version = "^2.11.0" }
 tensorflow = [# TODO: Remove python version requirement when it is possible
-    { platform = 'linux', python = "<3.11", version = "^2.11.0" }, # This does not seem to be using GPU, but is faster than tflite?!?
+    { platform = 'linux', python = "<3.11", version = "^2.12.0" }, # This does not seem to be using GPU, but is faster than tflite?!?
     { markers = 'sys_platform != "linux"', python = "<3.11", version = "<2.11.0" }, # Last version that works on Windows-native with GPU
 ]
 
@@ -46,7 +45,7 @@ buildozer = "^1.5.0"
 [tool.poetry.group.build-desktop] # poetry install --with build-desktop
 optional = true
 [tool.poetry.group.build-desktop.dependencies]
-pyinstaller = "^5.10"
+pyinstaller = "^5.10.1"
 
 [build-system]
 requires = ["poetry-core"]
