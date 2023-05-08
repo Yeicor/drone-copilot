@@ -28,7 +28,7 @@ tensorflow = [# TODO: Remove python version requirement when it is possible
 ]
 
 # Network
-requests = "^2.29.0"
+requests = "^2.30.0"
 
 # Misc
 plyer = "^2.1.0" # Cross-platform utilities
