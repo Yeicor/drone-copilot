@@ -1855,21 +1855,18 @@ tests = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "tflite-runtime"
-version = "2.11.0"
+version = "2.12.0"
 description = "TensorFlow Lite is for mobile and embedded devices."
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "tflite_runtime-2.11.0-cp37-cp37m-manylinux2014_aarch64.whl", hash = "sha256:50832befa76d69de082394716846e12d85fa8257f3ddb0a4755479bdb0a47083"},
-    {file = "tflite_runtime-2.11.0-cp37-cp37m-manylinux2014_armv7l.whl", hash = "sha256:cf018122630db1584ecd7645b77e87814edf4b9b6f29a1bbde188009e644737f"},
-    {file = "tflite_runtime-2.11.0-cp37-cp37m-manylinux2014_x86_64.whl", hash = "sha256:6a784dd07df27316d5a800b60ce2f448572b6ad7ea5372b93c931818d6bda482"},
-    {file = "tflite_runtime-2.11.0-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:a3e53e625626312f9384aefa72458fd2d756a57e0a98394096300c3c1183caf8"},
-    {file = "tflite_runtime-2.11.0-cp38-cp38-manylinux2014_armv7l.whl", hash = "sha256:aad98db64962a515a90deaf38110181b3eb4cafbe9654673a71bda147e1c2576"},
-    {file = "tflite_runtime-2.11.0-cp38-cp38-manylinux2014_x86_64.whl", hash = "sha256:086f5ac54e6b6a73b75fa91ea63a7c8a71274272c787f39ed1ebeab2d570595c"},
-    {file = "tflite_runtime-2.11.0-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:e15ebb86a1039cbbe9132cb3497466e248d401b03b963b6d4045f732d1a66e2a"},
-    {file = "tflite_runtime-2.11.0-cp39-cp39-manylinux2014_armv7l.whl", hash = "sha256:1cf50a6c51147d70299f4469f6cfab732f38f6ee7999df287155513e742360e6"},
-    {file = "tflite_runtime-2.11.0-cp39-cp39-manylinux2014_x86_64.whl", hash = "sha256:7ec1652408e33d0d4958fb830be00fd9829e2bf3b901e6a02b0b9186b2d2e61c"},
+    {file = "tflite_runtime-2.12.0-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:098c7d62f07ea34dcdde0aaa081b1278f02b292d8dac8a91b25bc70c0ef9e95a"},
+    {file = "tflite_runtime-2.12.0-cp38-cp38-manylinux2014_armv7l.whl", hash = "sha256:d3bed6610f80d45d7f38080233f0e302cbb0c48cc2f963bff0fb24729723a13b"},
+    {file = "tflite_runtime-2.12.0-cp38-cp38-manylinux2014_x86_64.whl", hash = "sha256:49fe5c1d99e60a32849e9fdee8a9a79b7aa90a0bba74d0614542ce0c82edea30"},
+    {file = "tflite_runtime-2.12.0-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:91353bf0e4480adb27b8f68b0898fe40040649f10311992abee351055ba8d98f"},
+    {file = "tflite_runtime-2.12.0-cp39-cp39-manylinux2014_armv7l.whl", hash = "sha256:1b39d956ce27cb7efcdd5fa8edf8c46388d856f68fda3563125641a44158c193"},
+    {file = "tflite_runtime-2.12.0-cp39-cp39-manylinux2014_x86_64.whl", hash = "sha256:474684cc00e2db80027a9145b51425121432418ee0f21f0aa497da4731485ca4"},
 ]
 
 [package.dependencies]
@@ -2136,4 +2133,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.10"
-content-hash = "fb36ea8ceb5d88f39b4b30a61ec9a3e691a5639fedaf34c969d32571692eb6a1"
+content-hash = "b0f0ddfea3a1a71542934b0a83e9f4f9e2a42ddedb3904dae2a5fc1e226384ca"
