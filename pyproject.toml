@@ -45,7 +45,7 @@ buildozer = "^1.5.0"
 [tool.poetry.group.build-desktop] # poetry install --with build-desktop
 optional = true
 [tool.poetry.group.build-desktop.dependencies]
-pyinstaller = "^5.11.0"
+pyinstaller = "^5.12.0"
 
 [build-system]
 requires = ["poetry-core"]
