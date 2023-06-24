@@ -10,7 +10,7 @@ readme = "README.md"
 python = ">=3.9,<3.10" # FIXME: tflite-runtime requires python 3.9
 
 # Kivy & Widgets
-Kivy = { version = "^2.2.0", extras = ["base", "full"] }
+Kivy = { version = "^2.2.1", extras = ["base", "full"] }
 joystick = { git = "https://github.com/Yeicor/joystick", rev = "master" }
 kivy3 = { git = "https://github.com/KeyWeeUsr/kivy3", rev = "master" }
 
