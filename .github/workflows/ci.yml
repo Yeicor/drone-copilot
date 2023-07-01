@@ -68,9 +68,8 @@ jobs:
               echo "/Users/runner/.local/bin" >> $GITHUB_PATH
               # Ensure python <3.11
               brew list | grep python
-              brew install python@3.10
-              brew list | grep python
-              brew uninstall --ignore-dependencies python@3.11 python@3.8
+              brew uninstall --ignore-dependencies $(brew list | grep python | tr '\n' ' ')
+              brew install python@3.9
               brew list | grep python
               # Reinstall poetry
               curl -sSL https://install.python-poetry.org | python3 - --uninstall
