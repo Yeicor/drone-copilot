@@ -1,12 +1,6 @@
-name: Release
+name: CI
 
-on:
-  push:
-    tags:
-      - 'v*.*.*'
-
-permissions:
-  contents: write # Required to upload artifacts to releases (and pushing the version update)
+on: ["push", "pull_request"]
 
 jobs:
   build-android:
