@@ -1,0 +1,141 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write # Required to upload artifacts to releases (and pushing the version update)
+
+jobs:
+  build-android:
+    name: Build android
+    runs-on: ubuntu-latest
+    needs:
+      - update-version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: armeabi-v7a
+          - arch: arm64-v8a
+          - arch: x86
+          - arch: x86_64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+      - uses: actions/setup-python@v4
+        id: setup-python
+        with:
+          python-version: 3.9
+          cache: poetry
+      - name: Buildozer cache
+        uses: actions/cache@v3
+        with:
+          path: .buildozer
+          key: ${{ runner.os }}-${{ matrix.arch }}-python-${{ steps.setup-python.outputs.python-version }}-buildozer-${{ hashFiles('buildozer.spec') }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev \
+          libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          # Set the build architecture (android only)
+          sed -E -i 's/^android.archs = .*$/android.archs = ${{ matrix.arch }}/g' buildozer.spec 
+
+      - name: Install python dependencies
+        run: poetry install --with build-mobile --without main
+
+      - name: Build with Buildozer
+        run: yes | poetry run buildozer android release
+
+  build-desktop:
+    name: Build desktop
+    runs-on: '${{ matrix.os }}'
+    needs:
+      - update-version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x86_64
+          - os: ubuntu-latest
+            deps: |
+              sudo apt update
+              sudo apt install -y libunwind-dev  # Ubuntu 22.04 needs this for the next line to work
+              sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev \
+              libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0 gstreamer1.0-plugins-base \
+              gstreamer1.0-plugins-good libmtdev-dev xvfb upx
+              echo "DISPLAY=:99.0" >> $GITHUB_ENV
+              Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          # Mac OS x86_64
+          - os: macos-latest
+            deps: |
+              # Complete installation by adding poetry to the path
+              echo "/Users/runner/.local/bin" >> $GITHUB_PATH
+              # Ensure python <3.11
+              brew list | grep python
+              brew install python@3.10
+              brew list | grep python
+              brew uninstall --ignore-dependencies python@3.11 python@3.8
+              brew list | grep python
+              # Reinstall poetry
+              curl -sSL https://install.python-poetry.org | python3 - --uninstall
+              curl -sSL https://install.python-poetry.org | python3 -
+              # Install dependencies
+              brew reinstall --build-from-source sdl2 sdl2_image sdl2_ttf sdl2_mixer ffmpeg
+          # Windows x86_64
+          - os: windows-latest
+            deps: |
+              # Complete installation by adding poetry to the path
+              echo "C:\Users\runneradmin\AppData\Roaming\Python\Scripts" >> $GITHUB_PATH
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: ssciwr/setup-mesa-dist-win@v1  # For OpenGL support on Windows (same as Xvfb)
+        if: matrix.os == 'windows-latest'
+
+      - name: Install poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+      - uses: actions/setup-python@v4
+        if: matrix.os == 'ubuntu-latest' # Caching with setup-python fails on non-ubuntu, so we do it manually
+        with:
+          python-version: 3.9
+          cache: poetry
+      - uses: actions/setup-python@v4
+        if: matrix.os != 'ubuntu-latest'
+        with:
+          python-version: 3.9
+      - name: Cache poetry (windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/cache@v3
+        with:
+          path: C:\Users\runneradmin\AppData\Roaming\pypoetry
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
+
+      - name: PyInstaller cache
+        uses: actions/cache@v3
+        with:
+          path: build
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pyinstaller-${{ hashFiles('pyinstaller.spec') }}
+
+      - name: Install system dependencies
+        if: matrix.deps != ''
+        shell: bash  # For easier windows support
+        run: ${{ matrix.deps }}
+
+      - name: Install python dependencies
+        shell: bash
+        run: poetry cache clear --all pypi && poetry install --with build-desktop
+
+      - name: Build a single executable with PyInstaller
+        shell: bash
+        run: |
+          poetry run python -m PyInstaller pyinstaller.spec
+          # Better output names
+          export VERSION="${GITHUB_REF##*/}"
+          mv dist/drone-copilot "dist/drone-copilot-${VERSION:1}-$(uname -s -m | tr ' /' '-' | tr '[:upper:]' '[:lower:]')" || true
